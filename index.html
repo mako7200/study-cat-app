@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0820">
+<title>スタディにゃんこ</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="スタディにゃんこ">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="app">
+  <header>
+    <div class="header-title">スタディにゃんこ</div>
+  </header>
+
+  <main>
+    <div class="tab active" id="tab-home">
+      <div class="log-form">
+        <input type="date" id="input-date" />
+        <input type="text" id="input-theme" placeholder="今日は何を勉強した？" />
+        <input type="number" id="input-minutes" placeholder="時間（分）" min="1" />
+        <div class="understanding-select" id="understanding-select">
+          <button type="button" class="understanding-btn" data-level="1">もう少し</button>
+          <button type="button" class="understanding-btn" data-level="2">まあまあ</button>
+          <button type="button" class="understanding-btn" data-level="3">バッチリ</button>
+        </div>
+        <textarea id="input-memo" placeholder="メモ（任意）" rows="2"></textarea>
+        <button type="button" id="btn-submit" class="btn-primary">記録する</button>
+      </div>
+      <div class="log-list" id="log-list"></div>
+      <div class="version-tag">Version 0.2.0</div>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-card">
+      <div class="modal-message" id="confirm-modal-message">この記録を削除しますか？</div>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" id="confirm-modal-cancel">キャンセル</button>
+        <button type="button" class="modal-btn modal-btn-danger" id="confirm-modal-ok">削除する</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
