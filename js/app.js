@@ -92,6 +92,7 @@ let coins = load(KEYS.coins, 0);
 let shop = { owned: [], ...DEFAULT_EQUIP, ...load(KEYS.shop, {}) };
 let isAdmin = load(KEYS.admin, false);
 let tickTimer = null;
+let lastStudyDate = null;
 
 const $ = id => document.getElementById(id);
 const timerView = $('timer-view');
@@ -224,7 +225,17 @@ function applyKnob() {
 
 function applyCat() {
   $('done-cat').src = equippedItem('cat').images.done;
-  setCat(running ? 'running' : 'idle');
+  setCat(catState());
+}
+
+function updateLastStudyDate() {
+  const dates = load(KEYS.sessions, []).map(s => s.date).sort();
+  lastStudyDate = dates[dates.length - 1] || null;
+}
+
+function catState() {
+  if (running) return 'running';
+  return lastStudyDate === dateStr(Date.now()) ? 'done' : 'idle';
 }
 
 function setCat(state) {
@@ -264,7 +275,7 @@ function renderTimer() {
 
   startBtn.textContent = running ? 'おわる' : 'はじめる';
   timerView.classList.toggle('is-running', !!running);
-  setCat(running ? 'running' : 'idle');
+  setCat(catState());
 }
 
 function minutesFromPointer(event) {
@@ -357,7 +368,9 @@ function finish(minutes) {
   save(KEYS.coins, coins);
   renderCoins();
   renderStore();
+  updateLastStudyDate();
   renderLogs();
+  renderTimer();
   openDone(session);
 }
 
@@ -375,7 +388,9 @@ startBtn.addEventListener('click', async () => {
 });
 
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') tick();
+  if (document.visibilityState !== 'visible') return;
+  if (running) tick();
+  else renderTimer();
 });
 
 let doneSessionId = null;
@@ -611,7 +626,9 @@ logList.addEventListener('click', async event => {
   if (!ok) return;
   const id = Number(btn.dataset.id);
   save(KEYS.sessions, load(KEYS.sessions, []).filter(s => s.id !== id));
+  updateLastStudyDate();
   renderLogs();
+  renderTimer();
 });
 
 let storeCategory = 'cat';
@@ -895,6 +912,7 @@ $('confirm-modal-cancel').addEventListener('click', () => hideConfirm(false));
 $('confirm-modal-ok').addEventListener('click', () => hideConfirm(true));
 
 rollbackLockedItems();
+updateLastStudyDate();
 applyCat();
 applyGauge();
 applyKnob();
