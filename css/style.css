@@ -32,6 +32,7 @@ html, body {
   font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   overflow: hidden;
   overscroll-behavior: none;
 }
@@ -514,20 +515,6 @@ button {
   place-items: center;
 }
 
-.store-time {
-  font-size: 2rem;
-  font-weight: 200;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  text-align: center;
-}
-
-.store-time small {
-  display: block;
-  font-size: 0.7rem;
-  color: var(--text-sub);
-  margin-top: 6px;
-}
 
 .store-name {
   font-size: 0.85rem;

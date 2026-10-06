@@ -12,6 +12,7 @@ const UNDERSTANDING_LABEL = { '1': 'もう少し', '2': 'まあまあ', '3': '�
 const RING_RADIUS = 54;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 const MIN_MINUTES = 10;
+const MAX_MINUTES = 120;
 const DEV_CODE = 'matatabi';
 const UPDATED_FLAG = 'studyCatJustUpdated';
 const MORNING_START = 6;
@@ -52,19 +53,13 @@ const SHOP = {
     { id: 'theme-minato', name: '月夜の港', price: 2000, bg: '#0b1430', image: 'images/wall-minato.jpg', thumb: 'images/wall-minato-thumb.jpg' },
     { id: 'theme-kogen', name: '高原', price: 2000, bg: '#0f1d24', image: 'images/wall-kogen.jpg', thumb: 'images/wall-kogen-thumb.jpg' },
     { id: 'theme-asa', name: '朝のひととき', morningGoal: 7, bg: '#14141c', image: 'images/wall-asa.jpg', thumb: 'images/wall-asa-thumb.jpg' }
-  ],
-  time: [
-    { id: 'time-120', name: '120分', price: 0, max: 120 },
-    { id: 'time-180', name: '180分', price: 300, max: 180, requires: 'time-120' },
-    { id: 'time-240', name: '240分', price: 600, max: 240, requires: 'time-180' }
   ]
 };
 const DEFAULT_EQUIP = { cat: 'cat-noir', gauge: 'gauge-wakaba', knob: 'knob-circle', theme: 'theme-mayonaka' };
 const STORE_SECTIONS = {
   cat: [['cat', null]],
   gauge: [['gauge', '色'], ['knob', 'つまみ']],
-  theme: [['theme', null]],
-  time: [['time', null]]
+  theme: [['theme', null]]
 };
 const WALL_DIM = 'linear-gradient(rgba(8, 6, 26, 0.25), rgba(8, 6, 26, 0.45))';
 const PAW_SCALE = 0.78;
@@ -188,13 +183,9 @@ function equippedItem(category) {
   return item && isItemUnlocked(item) ? item : SHOP[category][0];
 }
 
-function maxMinutes() {
-  return Math.max(...SHOP.time.filter(isItemUnlocked).map(i => i.max));
-}
-
 function minuteOptions() {
   const options = [];
-  for (let m = MIN_MINUTES; m <= maxMinutes(); m += 5) options.push(m);
+  for (let m = MIN_MINUTES; m <= MAX_MINUTES; m += 5) options.push(m);
   return options;
 }
 
@@ -281,10 +272,10 @@ function renderTimer() {
     const elapsed = Math.floor((Date.now() - running.startAt) / 1000);
     const remain = Math.max(running.minutes * 60 - elapsed, 0);
     timerDisplay.textContent = formatTime(remain);
-    setGauge(remain / (maxMinutes() * 60), true);
+    setGauge(remain / (MAX_MINUTES * 60), true);
   } else {
     timerDisplay.textContent = formatTime(prefs.minutes * 60);
-    setGauge(prefs.minutes / maxMinutes());
+    setGauge(prefs.minutes / MAX_MINUTES);
   }
 
   startBtn.textContent = running ? 'おわる' : 'はじめる';
@@ -294,7 +285,7 @@ function renderTimer() {
 }
 
 function minutesFromPointer(event) {
-  const max = maxMinutes();
+  const max = MAX_MINUTES;
   const rect = catRing.getBoundingClientRect();
   const dx = event.clientX - (rect.left + rect.width / 2);
   const dy = event.clientY - (rect.top + rect.height / 2);
@@ -781,6 +772,14 @@ $('day-sheet').addEventListener('click', event => {
 
 let storeCategory = 'cat';
 
+function resetScroll(el) {
+  el.style.overflowY = 'hidden';
+  el.scrollTop = 0;
+  requestAnimationFrame(() => {
+    el.style.overflowY = '';
+  });
+}
+
 function itemPreview(category, item) {
   if (category === 'gauge') {
     const stroke = item.gradientTo ? `url(#store-${item.id})` : item.color;
@@ -800,22 +799,15 @@ function itemPreview(category, item) {
       : `<circle cx="60" cy="60" r="16" class="store-knob" style="fill:${gauge}" />`;
     return `<svg class="store-ring" viewBox="0 0 120 120">${knob}</svg>`;
   }
-  if (category === 'theme') {
-    const bg = item.image ? `url(${item.thumb}) center / cover` : wallBackground(item);
-    return `<div class="store-swatch" style="background:${bg}"></div>`;
-  }
-  return `<div class="store-time">${item.max}<small>分</small></div>`;
+  const bg = item.image ? `url(${item.thumb}) center / cover no-repeat` : wallBackground(item);
+  return `<div class="store-swatch" style="background:${bg}"></div>`;
 }
 
 function itemStatus(category, item) {
   if (item.morningGoal && !isItemUnlocked(item)) {
     return `<span class="store-price">朝活 ${Math.min(morningCount(), item.morningGoal)} / ${item.morningGoal}回</span>`;
   }
-  if (category === 'time') {
-    if (isItemUnlocked(item)) return '<span class="store-badge store-badge-owned">解放済み</span>';
-    const required = SHOP.time.find(i => i.id === item.requires);
-    if (!isItemUnlocked(required)) return `<span class="store-price">${required.name}の購入が先</span>`;
-  } else if (equippedItem(category).id === item.id) {
+  if (equippedItem(category).id === item.id) {
     return '<span class="store-badge">使用中</span>';
   } else if (isItemUnlocked(item)) {
     return `<span class="store-badge store-badge-owned">${item.morningGoal ? '獲得済み' : '購入済み'}</span>`;
@@ -825,20 +817,17 @@ function itemStatus(category, item) {
 
 function unavailableReason(category, item) {
   if (item.morningGoal) return `朝活であと${item.morningGoal - morningCount()}回で手に入ります`;
-  const required = item.requires && SHOP[category].find(i => i.id === item.requires);
-  if (required && !isItemUnlocked(required)) return `${required.name}の購入が先です`;
   return 'コインが足りません';
 }
 
 function isItemBuyable(category, item) {
   if (isItemUnlocked(item) || item.morningGoal) return false;
-  if (item.requires && !isItemUnlocked(SHOP[category].find(i => i.id === item.requires))) return false;
   return coins >= item.price;
 }
 
 function renderStoreCards(category) {
   return SHOP[category].map(item => {
-    const using = category !== 'time' && equippedItem(category).id === item.id;
+    const using = equippedItem(category).id === item.id;
     return `
       <button type="button" class="store-card${using ? ' using' : ''}" data-category="${category}" data-id="${item.id}">
         <div class="store-preview">${itemPreview(category, item)}</div>
@@ -860,10 +849,10 @@ storeSeg.addEventListener('click', event => {
   storeCategory = btn.dataset.category;
   storeSeg.querySelectorAll('.store-seg-btn').forEach(b => b.classList.toggle('selected', b === btn));
   renderStore();
+  resetScroll(storeGrid.closest('.page-body'));
 });
 
 function equip(category, item) {
-  if (category === 'time') return;
   shop[category] = item.id;
   save(KEYS.shop, shop);
   applyCat();
@@ -906,8 +895,8 @@ function rollbackLockedItems() {
     if (!item || !isItemUnlocked(item)) shop[category] = DEFAULT_EQUIP[category];
   });
   save(KEYS.shop, shop);
-  if (prefs.minutes > maxMinutes()) {
-    prefs.minutes = maxMinutes();
+  if (prefs.minutes > MAX_MINUTES) {
+    prefs.minutes = MAX_MINUTES;
     savePrefs();
   }
 }
