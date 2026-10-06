@@ -8,16 +8,41 @@ const KEYS = {
   sessions: 'studyCatSessions',
   tags: 'studyCatTags',
   prefs: 'studyCatPrefs',
-  running: 'studyCatRunning'
+  running: 'studyCatRunning',
+  coins: 'studyCatCoins',
+  shop: 'studyCatShop',
+  admin: 'studyCatAdmin'
 };
 const TAG_COLORS = ['#E07A5F', '#E6B655', '#6FA88C', '#5BA8B5', '#7B93D6', '#B08BD0'];
-const MINUTE_OPTIONS = Array.from({ length: 23 }, (_, i) => 10 + i * 5);
 const UNDERSTANDING_LABEL = { '1': 'もう少し', '2': 'まあまあ', '3': 'バッチリ' };
 const CAT_IMAGES = { idle: 'images/cat-sleep.jpg', running: 'images/cat-back.jpg' };
 const RING_RADIUS = 54;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
-const MAX_MINUTES = 120;
 const MIN_MINUTES = 10;
+const DEV_CODE = 'matatabi';
+
+const SHOP = {
+  gauge: [
+    { id: 'gauge-wakaba', name: '若葉', price: 0, color: '#6FA88C' },
+    { id: 'gauge-kohaku', name: '琥珀', price: 100, color: '#E6B655' },
+    { id: 'gauge-sakura', name: '桜', price: 100, color: '#E8A0B4' },
+    { id: 'gauge-mizu', name: '水色', price: 100, color: '#5FC4D0' },
+    { id: 'gauge-hotaru', name: '蛍', price: 200, color: '#9AF0C0', glow: true },
+    { id: 'gauge-yubae', name: '夕映え', price: 300, color: '#7B93D6', gradientTo: '#E8A0B4' }
+  ],
+  theme: [
+    { id: 'theme-mayonaka', name: '真夜中', price: 0, bg: '#0a0820' },
+    { id: 'theme-mori', name: '森', price: 300, bg: '#0d1f18' },
+    { id: 'theme-yoi', name: '宵', price: 300, bg: '#1d1028' },
+    { id: 'theme-danro', name: '暖炉', price: 300, bg: '#21130d' }
+  ],
+  time: [
+    { id: 'time-120', name: '120分', price: 0, max: 120 },
+    { id: 'time-180', name: '180分', price: 300, max: 180, requires: 'time-120' },
+    { id: 'time-240', name: '240分', price: 600, max: 240, requires: 'time-180' }
+  ]
+};
+const DEFAULT_EQUIP = { gauge: 'gauge-wakaba', theme: 'theme-mayonaka' };
 
 localStorage.removeItem('studyCatLogs');
 
@@ -40,11 +65,15 @@ if (tags.length === 0) {
 }
 let prefs = load(KEYS.prefs, { minutes: 25, tagId: tags[0].id });
 let running = load(KEYS.running, null);
+let coins = load(KEYS.coins, 0);
+let shop = load(KEYS.shop, { owned: [], ...DEFAULT_EQUIP });
+let isAdmin = load(KEYS.admin, false);
 let tickTimer = null;
 
 const $ = id => document.getElementById(id);
 const timerView = $('timer-view');
 const catRing = document.querySelector('.cat-ring');
+const ring = $('ring');
 const ringProgress = $('ring-progress');
 const ringKnob = $('ring-knob');
 const catImg = $('cat-img');
@@ -53,8 +82,11 @@ const tagDot = $('tag-dot');
 const tagNameEl = $('tag-name');
 const timerDisplay = $('timer-display');
 const startBtn = $('btn-start');
+const drawer = $('drawer');
 const logList = $('log-list');
 const tagList = $('tag-list');
+const storeGrid = $('store-grid');
+const storeSeg = $('store-seg');
 const setupSheet = $('setup-sheet');
 const minuteRow = $('minute-row');
 const sheetTags = $('sheet-tags');
@@ -105,10 +137,63 @@ function savePrefs() {
   save(KEYS.prefs, prefs);
 }
 
+function isItemUnlocked(item) {
+  if (isAdmin) return true;
+  return item.price === 0 || shop.owned.includes(item.id);
+}
+
+function equippedItem(category) {
+  const item = SHOP[category].find(i => i.id === shop[category]);
+  return item && isItemUnlocked(item) ? item : SHOP[category][0];
+}
+
+function maxMinutes() {
+  return Math.max(...SHOP.time.filter(isItemUnlocked).map(i => i.max));
+}
+
+function minuteOptions() {
+  const options = [];
+  for (let m = MIN_MINUTES; m <= maxMinutes(); m += 5) options.push(m);
+  return options;
+}
+
+function renderCoins() {
+  document.querySelectorAll('.coin-count').forEach(el => {
+    el.textContent = coins.toLocaleString();
+  });
+}
+
+function applyGauge() {
+  const item = equippedItem('gauge');
+  ring.style.setProperty('--gauge', item.color);
+  ring.classList.toggle('glow', !!item.glow);
+  if (item.gradientTo) {
+    $('gauge-gradient-from').setAttribute('stop-color', item.color);
+    $('gauge-gradient-to').setAttribute('stop-color', item.gradientTo);
+    ringProgress.style.stroke = 'url(#gauge-gradient)';
+  } else {
+    ringProgress.style.stroke = '';
+  }
+}
+
+function applyTheme() {
+  const item = equippedItem('theme');
+  document.documentElement.style.setProperty('--bg', item.bg);
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', item.bg);
+}
+
 function setCat(state) {
   if (catImg.dataset.state === state) return;
   catImg.dataset.state = state;
   catImg.src = CAT_IMAGES[state];
+}
+
+function setGauge(ratio) {
+  const clamped = Math.min(ratio, 1);
+  const angle = clamped * 2 * Math.PI;
+  ringProgress.style.strokeDashoffset = RING_LENGTH * (1 - clamped);
+  ringKnob.setAttribute('cx', 60 + RING_RADIUS * Math.cos(angle));
+  ringKnob.setAttribute('cy', 60 + RING_RADIUS * Math.sin(angle));
 }
 
 function renderTimer() {
@@ -122,10 +207,10 @@ function renderTimer() {
     const elapsed = Math.floor((Date.now() - running.startAt) / 1000);
     const remain = Math.max(running.minutes * 60 - elapsed, 0);
     timerDisplay.textContent = formatTime(remain);
-    setGauge(remain / (MAX_MINUTES * 60));
+    setGauge(remain / (maxMinutes() * 60));
   } else {
     timerDisplay.textContent = formatTime(prefs.minutes * 60);
-    setGauge(prefs.minutes / MAX_MINUTES);
+    setGauge(prefs.minutes / maxMinutes());
   }
 
   startBtn.textContent = running ? 'おわる' : 'はじめる';
@@ -133,22 +218,16 @@ function renderTimer() {
   setCat(running ? 'running' : 'idle');
 }
 
-function setGauge(ratio) {
-  const angle = ratio * 2 * Math.PI;
-  ringProgress.style.strokeDashoffset = RING_LENGTH * (1 - ratio);
-  ringKnob.setAttribute('cx', 60 + RING_RADIUS * Math.cos(angle));
-  ringKnob.setAttribute('cy', 60 + RING_RADIUS * Math.sin(angle));
-}
-
 function minutesFromPointer(event) {
+  const max = maxMinutes();
   const rect = catRing.getBoundingClientRect();
   const dx = event.clientX - (rect.left + rect.width / 2);
   const dy = event.clientY - (rect.top + rect.height / 2);
   const angle = (Math.atan2(dx, -dy) + 2 * Math.PI) % (2 * Math.PI);
-  const minutes = Math.round(angle / (2 * Math.PI) * MAX_MINUTES / 5) * 5;
-  if (prefs.minutes >= 90 && minutes <= 30) return MAX_MINUTES;
-  if (prefs.minutes <= 30 && minutes >= 90) return MIN_MINUTES;
-  return Math.min(Math.max(minutes, MIN_MINUTES), MAX_MINUTES);
+  const minutes = Math.round(angle / (2 * Math.PI) * max / 5) * 5;
+  if (prefs.minutes >= max * 0.75 && minutes <= max * 0.25) return max;
+  if (prefs.minutes <= max * 0.25 && minutes >= max * 0.75) return MIN_MINUTES;
+  return Math.min(Math.max(minutes, MIN_MINUTES), max);
 }
 
 function isOnRing(event) {
@@ -225,6 +304,10 @@ function finish(minutes) {
   };
   sessions.push(session);
   save(KEYS.sessions, sessions);
+  coins += minutes;
+  save(KEYS.coins, coins);
+  renderCoins();
+  renderStore();
   renderLogs();
   openDone(session);
 }
@@ -255,6 +338,7 @@ function openDone(session) {
   doneMemo.value = '';
   understandingSelect.querySelectorAll('.understanding-btn').forEach(b => b.classList.remove('selected'));
   $('done-minutes').textContent = `${session.minutes} min`;
+  $('done-coins').textContent = `+${session.minutes}`;
   $('done-sub').textContent = `${session.tagName}　お疲れさま`;
   doneModal.classList.add('show');
 }
@@ -287,8 +371,32 @@ $('done-save').addEventListener('click', () => {
   closeDone();
 });
 
+function openDrawer() {
+  drawer.classList.add('show');
+}
+
+function closeDrawer() {
+  drawer.classList.remove('show');
+}
+
+$('btn-menu').addEventListener('click', openDrawer);
+
+drawer.addEventListener('click', event => {
+  const item = event.target.closest('.menu-item');
+  if (item) {
+    $(item.dataset.page).classList.add('show');
+    closeDrawer();
+    return;
+  }
+  if (event.target === drawer) closeDrawer();
+});
+
+document.querySelectorAll('.page-close').forEach(btn => {
+  btn.addEventListener('click', () => btn.closest('.page').classList.remove('show'));
+});
+
 function renderSheet() {
-  minuteRow.innerHTML = MINUTE_OPTIONS.map(m =>
+  minuteRow.innerHTML = minuteOptions().map(m =>
     `<button type="button" class="minute-btn${m === prefs.minutes ? ' selected' : ''}" data-minutes="${m}">${m}</button>`
   ).join('');
   const tag = currentTag();
@@ -426,7 +534,7 @@ function renderAllTags() {
 function renderLogs() {
   const sessions = load(KEYS.sessions, []);
   if (sessions.length === 0) {
-    logList.innerHTML = '<div class="log-empty">まだ記録がありません。<br>タイマーで勉強を始めてみましょう。</div>';
+    logList.innerHTML = '<div class="log-empty">まだ記録がありません。<br>タイマーで勉強をはじめてみましょう。</div>';
     return;
   }
   logList.innerHTML = sessions.slice().sort((a, b) => b.id - a.id).map(s => {
@@ -457,11 +565,149 @@ logList.addEventListener('click', async event => {
   renderLogs();
 });
 
+let storeCategory = 'gauge';
+
+function itemPreview(category, item) {
+  if (category === 'gauge') {
+    const stroke = item.gradientTo ? `url(#store-${item.id})` : item.color;
+    const defs = item.gradientTo
+      ? `<defs><linearGradient id="store-${item.id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${item.color}" /><stop offset="1" stop-color="${item.gradientTo}" /></linearGradient></defs>`
+      : '';
+    return `<svg class="store-ring${item.glow ? ' glow' : ''}" style="--gauge:${item.color}" viewBox="0 0 120 120">${defs}<circle cx="60" cy="60" r="50" class="store-ring-track" /><circle cx="60" cy="60" r="50" class="store-ring-progress" style="stroke:${stroke}" /></svg>`;
+  }
+  if (category === 'theme') {
+    return `<div class="store-swatch" style="background:${item.bg}"><i></i></div>`;
+  }
+  return `<div class="store-time">${item.max}<small>分</small></div>`;
+}
+
+function itemStatus(category, item) {
+  if (category === 'time') {
+    if (isItemUnlocked(item)) return '<span class="store-badge store-badge-owned">解放済み</span>';
+    const required = SHOP.time.find(i => i.id === item.requires);
+    if (!isItemUnlocked(required)) return `<span class="store-price">${required.name}の購入が先</span>`;
+  } else if (equippedItem(category).id === item.id) {
+    return '<span class="store-badge">使用中</span>';
+  } else if (isItemUnlocked(item)) {
+    return '<span class="store-badge store-badge-owned">購入済み</span>';
+  }
+  return `<span class="store-price"><span class="coin coin-sm"></span>${item.price.toLocaleString()}</span>`;
+}
+
+function isItemBuyable(category, item) {
+  if (isItemUnlocked(item)) return false;
+  if (item.requires && !isItemUnlocked(SHOP[category].find(i => i.id === item.requires))) return false;
+  return coins >= item.price;
+}
+
+function renderStore() {
+  storeGrid.innerHTML = SHOP[storeCategory].map(item => {
+    const using = storeCategory !== 'time' && equippedItem(storeCategory).id === item.id;
+    const disabled = !isItemUnlocked(item) && !isItemBuyable(storeCategory, item);
+    return `
+      <button type="button" class="store-card${using ? ' using' : ''}${disabled ? ' disabled' : ''}" data-id="${item.id}">
+        <div class="store-preview">${itemPreview(storeCategory, item)}</div>
+        <span class="store-name">${item.name}</span>
+        ${itemStatus(storeCategory, item)}
+      </button>`;
+  }).join('');
+}
+
+storeSeg.addEventListener('click', event => {
+  const btn = event.target.closest('.store-seg-btn');
+  if (!btn) return;
+  storeCategory = btn.dataset.category;
+  storeSeg.querySelectorAll('.store-seg-btn').forEach(b => b.classList.toggle('selected', b === btn));
+  renderStore();
+});
+
+function equip(category, item) {
+  if (category === 'time') return;
+  shop[category] = item.id;
+  save(KEYS.shop, shop);
+  applyGauge();
+  applyTheme();
+}
+
+storeGrid.addEventListener('click', async event => {
+  const card = event.target.closest('.store-card');
+  if (!card) return;
+  const category = storeCategory;
+  const item = SHOP[category].find(i => i.id === card.dataset.id);
+
+  if (isItemUnlocked(item)) {
+    equip(category, item);
+    renderStore();
+    return;
+  }
+  if (!isItemBuyable(category, item)) return;
+
+  const ok = await showConfirm(`${item.name}を${item.price.toLocaleString()}コインで購入しますか？`, '購入する', 'primary');
+  if (!ok || !isItemBuyable(category, item)) return;
+  coins -= item.price;
+  save(KEYS.coins, coins);
+  shop.owned.push(item.id);
+  save(KEYS.shop, shop);
+  equip(category, item);
+  renderCoins();
+  renderStore();
+  renderTimer();
+});
+
+function rollbackLockedItems() {
+  ['gauge', 'theme'].forEach(category => {
+    const item = SHOP[category].find(i => i.id === shop[category]);
+    if (!item || !isItemUnlocked(item)) shop[category] = DEFAULT_EQUIP[category];
+  });
+  save(KEYS.shop, shop);
+  if (prefs.minutes > maxMinutes()) {
+    prefs.minutes = maxMinutes();
+    savePrefs();
+  }
+}
+
+function renderDev() {
+  $('dev-locked').hidden = isAdmin;
+  $('dev-unlocked').hidden = !isAdmin;
+}
+
+function refreshShopState() {
+  applyGauge();
+  applyTheme();
+  renderDev();
+  renderStore();
+  renderTimer();
+  if (setupSheet.classList.contains('show')) renderSheet();
+}
+
+$('dev-unlock').addEventListener('click', () => {
+  const input = $('dev-code');
+  if (input.value.trim() !== DEV_CODE) {
+    $('dev-error').hidden = false;
+    return;
+  }
+  input.value = '';
+  $('dev-error').hidden = true;
+  isAdmin = true;
+  save(KEYS.admin, isAdmin);
+  refreshShopState();
+});
+
+$('dev-off').addEventListener('click', () => {
+  isAdmin = false;
+  save(KEYS.admin, isAdmin);
+  rollbackLockedItems();
+  refreshShopState();
+});
+
 let confirmResolve = null;
 
-function showConfirm(message, okLabel) {
+function showConfirm(message, okLabel, tone = 'danger') {
+  const okBtn = $('confirm-modal-ok');
   $('confirm-modal-message').textContent = message;
-  $('confirm-modal-ok').textContent = okLabel;
+  okBtn.textContent = okLabel;
+  okBtn.classList.toggle('modal-btn-danger', tone === 'danger');
+  okBtn.classList.toggle('modal-btn-primary', tone === 'primary');
   confirmModal.classList.add('show');
   return new Promise(resolve => {
     confirmResolve = resolve;
@@ -479,13 +725,12 @@ function hideConfirm(result) {
 $('confirm-modal-cancel').addEventListener('click', () => hideConfirm(false));
 $('confirm-modal-ok').addEventListener('click', () => hideConfirm(true));
 
-document.querySelector('.tabbar').addEventListener('click', event => {
-  const btn = event.target.closest('.tabbar-btn');
-  if (!btn) return;
-  document.querySelectorAll('.tabbar-btn').forEach(b => b.classList.toggle('active', b === btn));
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === btn.dataset.tab));
-});
-
+rollbackLockedItems();
+applyGauge();
+applyTheme();
+renderCoins();
+renderDev();
+renderStore();
 renderTagList();
 renderLogs();
 renderTimer();
