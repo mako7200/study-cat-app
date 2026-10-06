@@ -1,4 +1,4 @@
-const CACHE_NAME = 'study-cat-v3';
+const CACHE_NAME = 'study-cat-v4';
 const CACHE_FILES = [
   './',
   './index.html',
@@ -7,7 +7,10 @@ const CACHE_FILES = [
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
-  './icons/apple-touch-icon.png'
+  './icons/apple-touch-icon.png',
+  './images/cat-sleep.jpg',
+  './images/cat-back.jpg',
+  './images/cat-sit.jpg'
 ];
 
 self.addEventListener('install', event => {

@@ -22,30 +22,101 @@
   </header>
 
   <main>
-    <div class="tab active" id="tab-home">
-      <div class="log-form">
-        <input type="date" id="input-date" />
-        <input type="text" id="input-theme" placeholder="今日は何を勉強した？" />
-        <input type="number" id="input-minutes" placeholder="時間（分）" min="1" />
-        <div class="understanding-select" id="understanding-select">
-          <button type="button" class="understanding-btn" data-level="1">もう少し</button>
-          <button type="button" class="understanding-btn" data-level="2">まあまあ</button>
-          <button type="button" class="understanding-btn" data-level="3">バッチリ</button>
+    <section class="tab active" id="tab-timer">
+      <div class="timer-view" id="timer-view">
+        <div class="cat-ring">
+          <svg class="ring" viewBox="0 0 120 120">
+            <circle class="ring-track" cx="60" cy="60" r="54" />
+            <circle class="ring-progress" id="ring-progress" cx="60" cy="60" r="54" />
+          </svg>
+          <img class="cat-img" id="cat-img" src="images/cat-sleep.jpg" alt="">
         </div>
-        <textarea id="input-memo" placeholder="メモ（任意）" rows="2"></textarea>
-        <button type="button" id="btn-submit" class="btn-primary">記録する</button>
+        <button type="button" class="tag-chip" id="btn-tag">
+          <span class="tag-dot" id="tag-dot"></span>
+          <span id="tag-name"></span>
+        </button>
+        <button type="button" class="timer-display" id="timer-display">25:00</button>
+        <button type="button" class="btn-primary btn-start" id="btn-start">始める</button>
       </div>
+    </section>
+
+    <section class="tab" id="tab-log">
       <div class="log-list" id="log-list"></div>
-      <div class="version-tag">Version 0.2.1</div>
-    </div>
+    </section>
+
+    <section class="tab" id="tab-settings">
+      <div class="settings-section">
+        <div class="section-title">タグ</div>
+        <div class="tag-list" id="tag-list"></div>
+        <button type="button" class="btn-outline" id="btn-add-tag">タグを追加</button>
+      </div>
+      <div class="version-tag">Version 0.3.0</div>
+    </section>
   </main>
+
+  <nav class="tabbar">
+    <button type="button" class="tabbar-btn active" data-tab="tab-timer">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2.5 2.5M9.5 2.5h5" /></svg>
+      <span>タイマー</span>
+    </button>
+    <button type="button" class="tabbar-btn" data-tab="tab-log">
+      <svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12" /><circle cx="4" cy="6" r="0.6" /><circle cx="4" cy="12" r="0.6" /><circle cx="4" cy="18" r="0.6" /></svg>
+      <span>記録</span>
+    </button>
+    <button type="button" class="tabbar-btn" data-tab="tab-settings">
+      <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" /><circle cx="16" cy="7" r="2" /><circle cx="10" cy="17" r="2" /></svg>
+      <span>設定</span>
+    </button>
+  </nav>
+
+  <div class="sheet-overlay" id="setup-sheet">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="section-title">時間</div>
+      <div class="minute-row" id="minute-row"></div>
+      <div class="section-title">タグ</div>
+      <div class="sheet-tags" id="sheet-tags"></div>
+      <button type="button" class="btn-primary" id="setup-sheet-close">決定</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="tag-modal">
+    <div class="modal-card">
+      <div class="modal-message" id="tag-modal-title">タグを追加</div>
+      <input type="text" class="text-input" id="tag-modal-name" placeholder="タグ名" maxlength="20">
+      <div class="color-row" id="tag-modal-colors"></div>
+      <button type="button" class="link-danger" id="tag-modal-delete">このタグを削除</button>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" id="tag-modal-cancel">キャンセル</button>
+        <button type="button" class="modal-btn modal-btn-primary" id="tag-modal-save">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="done-modal">
+    <div class="modal-card">
+      <img class="done-cat" src="images/cat-sit.jpg" alt="">
+      <div class="done-minutes" id="done-minutes"></div>
+      <div class="done-sub" id="done-sub"></div>
+      <div class="understanding-select" id="understanding-select">
+        <button type="button" class="understanding-btn" data-level="1">もう少し</button>
+        <button type="button" class="understanding-btn" data-level="2">まあまあ</button>
+        <button type="button" class="understanding-btn" data-level="3">バッチリ</button>
+      </div>
+      <textarea class="text-input" id="done-memo" placeholder="メモ（任意）" rows="2"></textarea>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn" id="done-skip">スキップ</button>
+        <button type="button" class="modal-btn modal-btn-primary" id="done-save">保存</button>
+      </div>
+    </div>
+  </div>
 
   <div class="modal-overlay" id="confirm-modal">
     <div class="modal-card">
-      <div class="modal-message" id="confirm-modal-message">この記録を削除しますか？</div>
+      <div class="modal-message" id="confirm-modal-message"></div>
       <div class="modal-actions">
         <button type="button" class="modal-btn" id="confirm-modal-cancel">キャンセル</button>
-        <button type="button" class="modal-btn modal-btn-danger" id="confirm-modal-ok">削除する</button>
+        <button type="button" class="modal-btn modal-btn-danger" id="confirm-modal-ok"></button>
       </div>
     </div>
   </div>
