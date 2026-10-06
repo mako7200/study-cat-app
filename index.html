@@ -32,10 +32,34 @@
             <stop offset="0" id="gauge-gradient-from" />
             <stop offset="1" id="gauge-gradient-to" />
           </linearGradient>
+          <g id="paw-shape">
+            <path d="M6.3 17.4C6.3 14 8.9 11.8 12 11.8S17.7 14 17.7 17.4c0 2.5-2 3.6-3.5 2.8-1-.5-1.6-.7-2.2-.7s-1.2.2-2.2.7c-1.5.8-3.5-.3-3.5-2.8z" />
+            <ellipse cx="5.2" cy="10.4" rx="2.4" ry="2.9" transform="rotate(-25 5.2 10.4)" />
+            <ellipse cx="9.3" cy="6.6" rx="2.5" ry="3.1" transform="rotate(-8 9.3 6.6)" />
+            <ellipse cx="14.7" cy="6.6" rx="2.5" ry="3.1" transform="rotate(8 14.7 6.6)" />
+            <ellipse cx="18.8" cy="10.4" rx="2.4" ry="2.9" transform="rotate(25 18.8 10.4)" />
+          </g>
+          <filter id="glow-filter" filterUnits="userSpaceOnUse" x="-20" y="-20" width="160" height="160">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+          <filter id="neon-filter" filterUnits="userSpaceOnUse" x="-20" y="-20" width="160" height="160">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="near" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="far" />
+            <feMerge><feMergeNode in="far" /><feMergeNode in="far" /><feMergeNode in="near" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
         </defs>
         <circle class="ring-track" cx="60" cy="60" r="54" />
-        <circle class="ring-progress" id="ring-progress" cx="60" cy="60" r="54" />
+        <g class="ring-bar">
+          <circle class="ring-progress" id="ring-progress" cx="60" cy="60" r="54" />
+          <circle class="ring-core" id="ring-core" cx="60" cy="60" r="54" />
+        </g>
         <circle class="ring-knob" id="ring-knob" r="6" />
+        <g class="ring-paw" id="ring-paw">
+          <g class="paw-edge"><use href="#paw-shape" /></g>
+          <g class="paw-foot"><use href="#paw-shape" /></g>
+          <g class="paw-bean"><use href="#paw-shape" /></g>
+        </g>
       </svg>
       <img class="cat-img" id="cat-img" src="images/cat-sleep.jpg" alt="">
     </div>
@@ -102,12 +126,13 @@
       <div class="coin-pill"><span class="coin"></span><span class="coin-count">0</span></div>
     </div>
     <div class="store-seg" id="store-seg">
-      <button type="button" class="store-seg-btn selected" data-category="gauge">ゲージ</button>
-      <button type="button" class="store-seg-btn" data-category="theme">テーマ</button>
+      <button type="button" class="store-seg-btn selected" data-category="cat">猫</button>
+      <button type="button" class="store-seg-btn" data-category="gauge">ゲージ</button>
+      <button type="button" class="store-seg-btn" data-category="theme">壁紙</button>
       <button type="button" class="store-seg-btn" data-category="time">時間</button>
     </div>
     <div class="page-body">
-      <div class="store-grid" id="store-grid"></div>
+      <div class="store-sections" id="store-grid"></div>
     </div>
   </section>
 
@@ -147,7 +172,7 @@
         </button>
         <div class="accordion-body" hidden>
           <div class="app-info-row">
-            <span class="app-version">Version 0.5.0</span>
+            <span class="app-version">Version 0.6.0</span>
             <button type="button" class="btn-small" id="btn-fetch-latest">最新版を取得</button>
           </div>
         </div>
@@ -181,7 +206,7 @@
 
   <div class="modal-overlay" id="done-modal">
     <div class="modal-card">
-      <img class="done-cat" src="images/cat-sit.jpg" alt="">
+      <img class="done-cat" id="done-cat" src="images/cat-sit.jpg" alt="">
       <div class="done-minutes" id="done-minutes"></div>
       <div class="done-coins"><span class="coin"></span><span id="done-coins"></span></div>
       <div class="done-sub" id="done-sub"></div>

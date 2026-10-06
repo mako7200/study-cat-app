@@ -8,6 +8,9 @@
   --danger: #C9705C;
   --gold: #E6B655;
   --gold-edge: #C9963A;
+  --paw-foot: #F6EDE0;
+  --paw-bean: #F2A0B6;
+  --neon-core: #FFD6D6;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -137,8 +140,29 @@ button {
   stroke-linecap: round;
 }
 
-.ring.glow {
-  filter: drop-shadow(0 0 6px var(--gauge));
+.ring.glow .ring-bar,
+.store-ring.glow .store-ring-bar {
+  filter: url(#glow-filter);
+}
+
+.ring.neon .ring-bar,
+.store-ring.neon .store-ring-bar {
+  filter: url(#neon-filter);
+}
+
+.ring .ring-core {
+  display: none;
+  stroke: var(--neon-core);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.ring.neon .ring-core {
+  display: inline;
+}
+
+.timer-view.is-running .ring-core {
+  transition: stroke-dashoffset 1s linear;
 }
 
 .timer-view.is-running .ring-progress {
@@ -151,8 +175,35 @@ button {
   stroke-width: 2;
 }
 
-.timer-view.is-running .ring-knob {
+.timer-view.is-running .ring-knob,
+.ring.paw .ring-knob {
   display: none;
+}
+
+.ring-paw {
+  display: none;
+}
+
+.ring.paw .ring-paw {
+  display: inline;
+}
+
+.paw-edge {
+  fill: var(--bg);
+  stroke: var(--bg);
+  stroke-width: 7;
+  stroke-linejoin: round;
+}
+
+.paw-foot {
+  fill: var(--paw-foot);
+  stroke: var(--paw-foot);
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+
+.paw-bean {
+  fill: var(--paw-bean);
 }
 
 .cat-img {
@@ -368,6 +419,23 @@ button {
   font-weight: bold;
 }
 
+.store-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.store-section-title {
+  font-size: 0.78rem;
+  color: var(--text-sub);
+  letter-spacing: 0.08em;
+  margin-top: 8px;
+}
+
+.store-section-title:first-child {
+  margin-top: 0;
+}
+
 .store-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -409,8 +477,9 @@ button {
   transform: rotate(-90deg);
 }
 
-.store-ring.glow {
-  filter: drop-shadow(0 0 5px var(--gauge));
+.store-ring .store-ring-core {
+  stroke: var(--neon-core);
+  stroke-width: 2.6;
 }
 
 .store-ring circle {
@@ -732,11 +801,13 @@ button {
   font-size: 0.85rem;
   z-index: 110;
   transform: translate(-50%, -150%);
-  transition: transform 0.3s ease;
+  visibility: hidden;
+  transition: transform 0.3s ease, visibility 0.3s;
 }
 
 .update-banner.show {
   transform: translate(-50%, 0);
+  visibility: visible;
 }
 
 .toast {
@@ -1013,4 +1084,11 @@ button {
   border-color: var(--primary);
   color: var(--text);
   background: rgba(111, 168, 140, 0.15);
+}
+
+.store-cat {
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  object-fit: cover;
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'study-cat-v7';
+const CACHE_NAME = 'study-cat-v8';
 const CACHE_FILES = [
   './',
   './index.html',
@@ -10,7 +10,14 @@ const CACHE_FILES = [
   './icons/apple-touch-icon.png',
   './images/cat-sleep.jpg',
   './images/cat-back.jpg',
-  './images/cat-sit.jpg'
+  './images/cat-sit.jpg',
+  './images/cat-white-sleep.jpg',
+  './images/cat-white-back.jpg',
+  './images/cat-white-sit.jpg',
+  './images/wall-minato.jpg',
+  './images/wall-minato-thumb.jpg',
+  './images/wall-kogen.jpg',
+  './images/wall-kogen-thumb.jpg'
 ];
 
 self.addEventListener('install', event => {

@@ -9,7 +9,6 @@ const KEYS = {
 };
 const TAG_COLORS = ['#E07A5F', '#E6B655', '#6FA88C', '#5BA8B5', '#7B93D6', '#B08BD0'];
 const UNDERSTANDING_LABEL = { '1': 'もう少し', '2': 'まあまあ', '3': 'バッチリ' };
-const CAT_IMAGES = { idle: 'images/cat-sleep.jpg', running: 'images/cat-back.jpg' };
 const RING_RADIUS = 54;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 const MIN_MINUTES = 10;
@@ -17,19 +16,39 @@ const DEV_CODE = 'matatabi';
 const UPDATED_FLAG = 'studyCatJustUpdated';
 
 const SHOP = {
+  cat: [
+    { id: 'cat-noir', name: 'ノワール', price: 0, images: { idle: 'images/cat-sleep.jpg', running: 'images/cat-back.jpg', done: 'images/cat-sit.jpg' } },
+    { id: 'cat-luna', name: 'ルナ', price: 3000, images: { idle: 'images/cat-white-sleep.jpg', running: 'images/cat-white-back.jpg', done: 'images/cat-white-sit.jpg' } }
+  ],
   gauge: [
     { id: 'gauge-wakaba', name: '若葉', price: 0, color: '#6FA88C' },
     { id: 'gauge-kohaku', name: '琥珀', price: 100, color: '#E6B655' },
     { id: 'gauge-sakura', name: '桜', price: 100, color: '#E8A0B4' },
     { id: 'gauge-mizu', name: '水色', price: 100, color: '#5FC4D0' },
     { id: 'gauge-hotaru', name: '蛍', price: 200, color: '#9AF0C0', glow: true },
-    { id: 'gauge-yubae', name: '夕映え', price: 300, color: '#7B93D6', gradientTo: '#E8A0B4' }
+    { id: 'gauge-yubae', name: '夕映え', price: 300, color: '#7B93D6', gradientTo: '#E8A0B4' },
+    { id: 'gauge-laser', name: 'レーザーポインター', price: 2000, color: '#FF2A2A', neon: true }
+  ],
+  knob: [
+    { id: 'knob-circle', name: '丸', price: 0 },
+    { id: 'knob-paw', name: '肉球', price: 1000 }
   ],
   theme: [
     { id: 'theme-mayonaka', name: '真夜中', price: 0, bg: '#0a0820' },
     { id: 'theme-mori', name: '森', price: 300, bg: '#0d1f18' },
     { id: 'theme-yoi', name: '宵', price: 300, bg: '#1d1028' },
-    { id: 'theme-danro', name: '暖炉', price: 300, bg: '#21130d' }
+    { id: 'theme-danro', name: '暖炉', price: 300, bg: '#21130d' },
+    { id: 'theme-sakura', name: '桜', price: 300, bg: '#2a1420' },
+    { id: 'theme-umi', name: '海', price: 300, bg: '#071a2a' },
+    { id: 'theme-maccha', name: '抹茶', price: 300, bg: '#1a2212' },
+    { id: 'theme-sumi', name: '墨', price: 300, bg: '#151515' },
+    { id: 'theme-yozakura', name: '夜桜', price: 500, bg: '#1a0c18', gradient: 'linear-gradient(180deg, #4a2038 0%, #1a0c18 70%)' },
+    { id: 'theme-shinkai', name: '深海', price: 500, bg: '#050d1a', gradient: 'linear-gradient(180deg, #0f3550 0%, #050d1a 75%)' },
+    { id: 'theme-yuyake', name: '夕焼け', price: 500, bg: '#1c0e14', gradient: 'linear-gradient(180deg, #5a2a1e 0%, #1c0e14 70%)' },
+    { id: 'theme-aurora', name: 'オーロラ', price: 500, bg: '#0a0820', gradient: 'linear-gradient(180deg, #123a34 0%, #1a1438 55%, #0a0820 100%)' },
+    { id: 'theme-matte', name: 'マットブラック', price: 1000, bg: '#0d0d0d', texture: true },
+    { id: 'theme-minato', name: '月夜の港', price: 2000, bg: '#0b1430', image: 'images/wall-minato.jpg', thumb: 'images/wall-minato-thumb.jpg' },
+    { id: 'theme-kogen', name: '高原', price: 2000, bg: '#0f1d24', image: 'images/wall-kogen.jpg', thumb: 'images/wall-kogen-thumb.jpg' }
   ],
   time: [
     { id: 'time-120', name: '120分', price: 0, max: 120 },
@@ -37,7 +56,16 @@ const SHOP = {
     { id: 'time-240', name: '240分', price: 600, max: 240, requires: 'time-180' }
   ]
 };
-const DEFAULT_EQUIP = { gauge: 'gauge-wakaba', theme: 'theme-mayonaka' };
+const DEFAULT_EQUIP = { cat: 'cat-noir', gauge: 'gauge-wakaba', knob: 'knob-circle', theme: 'theme-mayonaka' };
+const STORE_SECTIONS = {
+  cat: [['cat', null]],
+  gauge: [['gauge', '色'], ['knob', 'つまみ']],
+  theme: [['theme', null]],
+  time: [['time', null]]
+};
+const WALL_DIM = 'linear-gradient(rgba(8, 6, 26, 0.25), rgba(8, 6, 26, 0.45))';
+const PAW_SCALE = 0.78;
+const MATTE_TEXTURE = `url('data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.07 0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>')}')`;
 
 localStorage.removeItem('studyCatLogs');
 
@@ -61,7 +89,7 @@ if (tags.length === 0) {
 let prefs = load(KEYS.prefs, { minutes: 25, tagId: tags[0].id });
 let running = load(KEYS.running, null);
 let coins = load(KEYS.coins, 0);
-let shop = load(KEYS.shop, { owned: [], ...DEFAULT_EQUIP });
+let shop = { owned: [], ...DEFAULT_EQUIP, ...load(KEYS.shop, {}) };
 let isAdmin = load(KEYS.admin, false);
 let tickTimer = null;
 
@@ -71,6 +99,8 @@ const catRing = document.querySelector('.cat-ring');
 const ring = $('ring');
 const ringProgress = $('ring-progress');
 const ringKnob = $('ring-knob');
+const ringPaw = $('ring-paw');
+const ringCore = $('ring-core');
 const catImg = $('cat-img');
 const tagBtn = $('btn-tag');
 const tagDot = $('tag-dot');
@@ -95,6 +125,7 @@ const understandingSelect = $('understanding-select');
 const confirmModal = $('confirm-modal');
 
 ringProgress.style.strokeDasharray = RING_LENGTH;
+ringCore.style.strokeDasharray = RING_LENGTH;
 
 function escapeHtml(str) {
   const div = document.createElement('div');
@@ -162,6 +193,7 @@ function applyGauge() {
   const item = equippedItem('gauge');
   ring.style.setProperty('--gauge', item.color);
   ring.classList.toggle('glow', !!item.glow);
+  ring.classList.toggle('neon', !!item.neon);
   if (item.gradientTo) {
     $('gauge-gradient-from').setAttribute('stop-color', item.color);
     $('gauge-gradient-to').setAttribute('stop-color', item.gradientTo);
@@ -171,24 +203,46 @@ function applyGauge() {
   }
 }
 
+function wallBackground(item) {
+  if (item.image) return `${WALL_DIM}, url(${item.image}) center / cover no-repeat, ${item.bg}`;
+  if (item.gradient) return `${item.gradient}, ${item.bg}`;
+  if (item.texture) return `${MATTE_TEXTURE}, ${item.bg}`;
+  return item.bg;
+}
+
 function applyTheme() {
   const item = equippedItem('theme');
   document.documentElement.style.setProperty('--bg', item.bg);
+  document.body.style.background = wallBackground(item);
   document.querySelector('meta[name="theme-color"]').setAttribute('content', item.bg);
 }
 
-function setCat(state) {
-  if (catImg.dataset.state === state) return;
-  catImg.dataset.state = state;
-  catImg.src = CAT_IMAGES[state];
+function applyKnob() {
+  const paw = equippedItem('knob').id === 'knob-paw';
+  ring.classList.toggle('paw', paw);
 }
 
-function setGauge(ratio) {
+function applyCat() {
+  $('done-cat').src = equippedItem('cat').images.done;
+  setCat(running ? 'running' : 'idle');
+}
+
+function setCat(state) {
+  const src = equippedItem('cat').images[state];
+  if (catImg.getAttribute('src') === src) return;
+  catImg.src = src;
+}
+
+function setGauge(ratio, backward = false) {
   const clamped = Math.min(ratio, 1);
   const angle = clamped * 2 * Math.PI;
   ringProgress.style.strokeDashoffset = RING_LENGTH * (1 - clamped);
-  ringKnob.setAttribute('cx', 60 + RING_RADIUS * Math.cos(angle));
-  ringKnob.setAttribute('cy', 60 + RING_RADIUS * Math.sin(angle));
+  ringCore.style.strokeDashoffset = RING_LENGTH * (1 - clamped);
+  const x = 60 + RING_RADIUS * Math.cos(angle);
+  const y = 60 + RING_RADIUS * Math.sin(angle);
+  ringKnob.setAttribute('cx', x);
+  ringKnob.setAttribute('cy', y);
+  ringPaw.setAttribute('transform', `translate(${x} ${y}) rotate(${clamped * 360 + (backward ? 0 : 180)}) scale(${PAW_SCALE}) translate(-12 -12)`);
 }
 
 function renderTimer() {
@@ -202,7 +256,7 @@ function renderTimer() {
     const elapsed = Math.floor((Date.now() - running.startAt) / 1000);
     const remain = Math.max(running.minutes * 60 - elapsed, 0);
     timerDisplay.textContent = formatTime(remain);
-    setGauge(remain / (maxMinutes() * 60));
+    setGauge(remain / (maxMinutes() * 60), true);
   } else {
     timerDisplay.textContent = formatTime(prefs.minutes * 60);
     setGauge(prefs.minutes / maxMinutes());
@@ -560,7 +614,7 @@ logList.addEventListener('click', async event => {
   renderLogs();
 });
 
-let storeCategory = 'gauge';
+let storeCategory = 'cat';
 
 function itemPreview(category, item) {
   if (category === 'gauge') {
@@ -568,10 +622,22 @@ function itemPreview(category, item) {
     const defs = item.gradientTo
       ? `<defs><linearGradient id="store-${item.id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${item.color}" /><stop offset="1" stop-color="${item.gradientTo}" /></linearGradient></defs>`
       : '';
-    return `<svg class="store-ring${item.glow ? ' glow' : ''}" style="--gauge:${item.color}" viewBox="0 0 120 120">${defs}<circle cx="60" cy="60" r="50" class="store-ring-track" /><circle cx="60" cy="60" r="50" class="store-ring-progress" style="stroke:${stroke}" /></svg>`;
+    const core = item.neon ? '<circle cx="60" cy="60" r="50" class="store-ring-progress store-ring-core" />' : '';
+    return `<svg class="store-ring${item.glow ? ' glow' : ''}${item.neon ? ' neon' : ''}" style="--gauge:${item.color}" viewBox="0 0 120 120">${defs}<circle cx="60" cy="60" r="50" class="store-ring-track" /><g class="store-ring-bar"><circle cx="60" cy="60" r="50" class="store-ring-progress" style="stroke:${stroke}" />${core}</g></svg>`;
+  }
+  if (category === 'cat') {
+    return `<img class="store-cat" src="${item.images.done}" alt="">`;
+  }
+  if (category === 'knob') {
+    const gauge = equippedItem('gauge').color;
+    const knob = item.id === 'knob-paw'
+      ? `<g transform="translate(60 60) rotate(90) scale(2.6) translate(-12 -12)"><g class="paw-edge"><use href="#paw-shape" /></g><g class="paw-foot"><use href="#paw-shape" /></g><g class="paw-bean"><use href="#paw-shape" /></g></g>`
+      : `<circle cx="60" cy="60" r="16" class="store-knob" style="fill:${gauge}" />`;
+    return `<svg class="store-ring" viewBox="0 0 120 120">${knob}</svg>`;
   }
   if (category === 'theme') {
-    return `<div class="store-swatch" style="background:${item.bg}"><i></i></div>`;
+    const bg = item.image ? `url(${item.thumb}) center / cover` : wallBackground(item);
+    return `<div class="store-swatch" style="background:${bg}"><i></i></div>`;
   }
   return `<div class="store-time">${item.max}<small>分</small></div>`;
 }
@@ -595,17 +661,23 @@ function isItemBuyable(category, item) {
   return coins >= item.price;
 }
 
-function renderStore() {
-  storeGrid.innerHTML = SHOP[storeCategory].map(item => {
-    const using = storeCategory !== 'time' && equippedItem(storeCategory).id === item.id;
-    const disabled = !isItemUnlocked(item) && !isItemBuyable(storeCategory, item);
+function renderStoreCards(category) {
+  return SHOP[category].map(item => {
+    const using = category !== 'time' && equippedItem(category).id === item.id;
+    const disabled = !isItemUnlocked(item) && !isItemBuyable(category, item);
     return `
-      <button type="button" class="store-card${using ? ' using' : ''}${disabled ? ' disabled' : ''}" data-id="${item.id}">
-        <div class="store-preview">${itemPreview(storeCategory, item)}</div>
+      <button type="button" class="store-card${using ? ' using' : ''}${disabled ? ' disabled' : ''}" data-category="${category}" data-id="${item.id}">
+        <div class="store-preview">${itemPreview(category, item)}</div>
         <span class="store-name">${item.name}</span>
-        ${itemStatus(storeCategory, item)}
+        ${itemStatus(category, item)}
       </button>`;
   }).join('');
+}
+
+function renderStore() {
+  storeGrid.innerHTML = STORE_SECTIONS[storeCategory].map(([category, title]) =>
+    `${title ? `<div class="store-section-title">${title}</div>` : ''}<div class="store-grid">${renderStoreCards(category)}</div>`
+  ).join('');
 }
 
 storeSeg.addEventListener('click', event => {
@@ -620,14 +692,16 @@ function equip(category, item) {
   if (category === 'time') return;
   shop[category] = item.id;
   save(KEYS.shop, shop);
+  applyCat();
   applyGauge();
+  applyKnob();
   applyTheme();
 }
 
 storeGrid.addEventListener('click', async event => {
   const card = event.target.closest('.store-card');
   if (!card) return;
-  const category = storeCategory;
+  const category = card.dataset.category;
   const item = SHOP[category].find(i => i.id === card.dataset.id);
 
   if (isItemUnlocked(item)) {
@@ -650,7 +724,7 @@ storeGrid.addEventListener('click', async event => {
 });
 
 function rollbackLockedItems() {
-  ['gauge', 'theme'].forEach(category => {
+  ['cat', 'gauge', 'knob', 'theme'].forEach(category => {
     const item = SHOP[category].find(i => i.id === shop[category]);
     if (!item || !isItemUnlocked(item)) shop[category] = DEFAULT_EQUIP[category];
   });
@@ -667,7 +741,9 @@ function renderDev() {
 }
 
 function refreshShopState() {
+  applyCat();
   applyGauge();
+  applyKnob();
   applyTheme();
   renderDev();
   renderStore();
@@ -819,7 +895,9 @@ $('confirm-modal-cancel').addEventListener('click', () => hideConfirm(false));
 $('confirm-modal-ok').addEventListener('click', () => hideConfirm(true));
 
 rollbackLockedItems();
+applyCat();
 applyGauge();
+applyKnob();
 applyTheme();
 renderCoins();
 renderDev();
