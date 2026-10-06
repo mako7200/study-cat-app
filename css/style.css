@@ -12,6 +12,15 @@
   --paw-bean: #F2A0B6;
   --neon-core: #FFD6D6;
   --hanko: #E0605A;
+  --font-digits: 'DotGothic16', 'Hiragino Kaku Gothic ProN', sans-serif;
+  --shadow-strong: 0 0 4px #000, 0 2px 6px #000, 0 0 24px rgba(0, 0, 0, 0.9);
+  --shadow-strong-sm: 0 0 3px #000, 0 1px 4px #000, 0 0 14px rgba(0, 0, 0, 0.9);
+}
+
+@font-face {
+  font-family: 'DotGothic16';
+  src: url('../fonts/dotgothic16-digits.woff2') format('woff2');
+  font-display: swap;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -239,9 +248,11 @@ button {
 .timer-display {
   border: none;
   background: none;
-  font-size: 4rem;
-  font-weight: 200;
-  letter-spacing: 0.04em;
+  font-family: var(--font-digits);
+  font-size: 3.8rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  text-shadow: var(--shadow-strong);
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
@@ -459,10 +470,6 @@ button {
   border-color: var(--primary);
 }
 
-.store-card.disabled {
-  opacity: 0.45;
-}
-
 .store-preview {
   width: 100%;
   aspect-ratio: 1;
@@ -505,13 +512,6 @@ button {
   border: 1px solid var(--border);
   display: grid;
   place-items: center;
-}
-
-.store-swatch i {
-  width: 56%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  border: 3px solid var(--primary);
 }
 
 .store-time {
@@ -1042,8 +1042,9 @@ button {
 
 .done-minutes {
   text-align: center;
+  font-family: var(--font-digits);
   font-size: 2rem;
-  font-weight: 200;
+  font-weight: 400;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
@@ -1276,7 +1277,9 @@ button {
   gap: 6px;
   margin-top: -8px;
   font-size: 0.8rem;
+  font-weight: bold;
   color: var(--gold);
+  text-shadow: var(--shadow-strong-sm);
 }
 
 .morning-hint svg {
@@ -1299,5 +1302,30 @@ button {
 .x2-badge[hidden],
 .morning-hint[hidden],
 .bonus-tag[hidden] {
+  display: none;
+}
+
+.coin-pill,
+.tag-chip {
+  font-weight: bold;
+}
+
+.morning-hint svg {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
+}
+
+.done-unlock {
+  text-align: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(230, 182, 85, 0.5);
+  background: rgba(230, 182, 85, 0.1);
+  color: var(--gold);
+  font-size: 0.85rem;
+  font-weight: bold;
+  white-space: pre-line;
+}
+
+.done-unlock[hidden] {
   display: none;
 }

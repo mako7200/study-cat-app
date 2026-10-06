@@ -1,4 +1,4 @@
-const CACHE_NAME = 'study-cat-v12';
+const CACHE_NAME = 'study-cat-v13';
 const CACHE_FILES = [
   './',
   './index.html',
@@ -17,7 +17,10 @@ const CACHE_FILES = [
   './images/wall-minato.jpg',
   './images/wall-minato-thumb.jpg',
   './images/wall-kogen.jpg',
-  './images/wall-kogen-thumb.jpg'
+  './images/wall-kogen-thumb.jpg',
+  './images/wall-asa.jpg',
+  './images/wall-asa-thumb.jpg',
+  './fonts/dotgothic16-digits.woff2'
 ];
 
 self.addEventListener('install', event => {

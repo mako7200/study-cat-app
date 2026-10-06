@@ -50,7 +50,8 @@ const SHOP = {
     { id: 'theme-aurora', name: 'オーロラ', price: 500, bg: '#0a0820', gradient: 'linear-gradient(180deg, #123a34 0%, #1a1438 55%, #0a0820 100%)' },
     { id: 'theme-matte', name: 'マットブラック', price: 1000, bg: '#0d0d0d', texture: true },
     { id: 'theme-minato', name: '月夜の港', price: 2000, bg: '#0b1430', image: 'images/wall-minato.jpg', thumb: 'images/wall-minato-thumb.jpg' },
-    { id: 'theme-kogen', name: '高原', price: 2000, bg: '#0f1d24', image: 'images/wall-kogen.jpg', thumb: 'images/wall-kogen-thumb.jpg' }
+    { id: 'theme-kogen', name: '高原', price: 2000, bg: '#0f1d24', image: 'images/wall-kogen.jpg', thumb: 'images/wall-kogen-thumb.jpg' },
+    { id: 'theme-asa', name: '朝のひととき', morningGoal: 7, bg: '#14141c', image: 'images/wall-asa.jpg', thumb: 'images/wall-asa-thumb.jpg' }
   ],
   time: [
     { id: 'time-120', name: '120分', price: 0, max: 120 },
@@ -169,6 +170,17 @@ function savePrefs() {
 function isItemUnlocked(item) {
   if (isAdmin) return true;
   return item.price === 0 || shop.owned.includes(item.id);
+}
+
+function morningCount() {
+  return load(KEYS.sessions, []).filter(s => s.morning).length;
+}
+
+function grantMorningRewards() {
+  const earned = SHOP.theme.filter(item => item.morningGoal && !shop.owned.includes(item.id) && morningCount() >= item.morningGoal);
+  earned.forEach(item => shop.owned.push(item.id));
+  if (earned.length) save(KEYS.shop, shop);
+  return earned;
 }
 
 function equippedItem(category) {
@@ -386,12 +398,13 @@ function finish(minutes) {
   save(KEYS.sessions, sessions);
   coins += session.coins;
   save(KEYS.coins, coins);
+  const rewards = grantMorningRewards();
   renderCoins();
   renderStore();
   updateLastStudyDate();
   renderLogs();
   renderTimer();
-  openDone(session);
+  openDone(session, rewards);
 }
 
 startBtn.addEventListener('click', async () => {
@@ -416,7 +429,7 @@ document.addEventListener('visibilitychange', () => {
 let doneSessionId = null;
 let doneUnderstanding = null;
 
-function openDone(session) {
+function openDone(session, rewards = []) {
   doneSessionId = session.id;
   doneUnderstanding = null;
   doneMemo.value = '';
@@ -424,6 +437,8 @@ function openDone(session) {
   $('done-minutes').textContent = `${session.minutes} min`;
   $('done-coins').textContent = `+${session.coins ?? session.minutes}`;
   $('done-bonus').hidden = !session.morning;
+  $('done-unlock').hidden = rewards.length === 0;
+  $('done-unlock').textContent = rewards.map(item => `${item.name} を手に入れました`).join('\n');
   $('done-sub').textContent = `${session.tagName}　お疲れさま`;
   doneModal.classList.add('show');
 }
@@ -787,12 +802,15 @@ function itemPreview(category, item) {
   }
   if (category === 'theme') {
     const bg = item.image ? `url(${item.thumb}) center / cover` : wallBackground(item);
-    return `<div class="store-swatch" style="background:${bg}"><i></i></div>`;
+    return `<div class="store-swatch" style="background:${bg}"></div>`;
   }
   return `<div class="store-time">${item.max}<small>分</small></div>`;
 }
 
 function itemStatus(category, item) {
+  if (item.morningGoal && !isItemUnlocked(item)) {
+    return `<span class="store-price">朝活 ${Math.min(morningCount(), item.morningGoal)} / ${item.morningGoal}回</span>`;
+  }
   if (category === 'time') {
     if (isItemUnlocked(item)) return '<span class="store-badge store-badge-owned">解放済み</span>';
     const required = SHOP.time.find(i => i.id === item.requires);
@@ -800,13 +818,20 @@ function itemStatus(category, item) {
   } else if (equippedItem(category).id === item.id) {
     return '<span class="store-badge">使用中</span>';
   } else if (isItemUnlocked(item)) {
-    return '<span class="store-badge store-badge-owned">購入済み</span>';
+    return `<span class="store-badge store-badge-owned">${item.morningGoal ? '獲得済み' : '購入済み'}</span>`;
   }
   return `<span class="store-price"><span class="coin coin-sm"></span>${item.price.toLocaleString()}</span>`;
 }
 
+function unavailableReason(category, item) {
+  if (item.morningGoal) return `朝活であと${item.morningGoal - morningCount()}回で手に入ります`;
+  const required = item.requires && SHOP[category].find(i => i.id === item.requires);
+  if (required && !isItemUnlocked(required)) return `${required.name}の購入が先です`;
+  return 'コインが足りません';
+}
+
 function isItemBuyable(category, item) {
-  if (isItemUnlocked(item)) return false;
+  if (isItemUnlocked(item) || item.morningGoal) return false;
   if (item.requires && !isItemUnlocked(SHOP[category].find(i => i.id === item.requires))) return false;
   return coins >= item.price;
 }
@@ -814,9 +839,8 @@ function isItemBuyable(category, item) {
 function renderStoreCards(category) {
   return SHOP[category].map(item => {
     const using = category !== 'time' && equippedItem(category).id === item.id;
-    const disabled = !isItemUnlocked(item) && !isItemBuyable(category, item);
     return `
-      <button type="button" class="store-card${using ? ' using' : ''}${disabled ? ' disabled' : ''}" data-category="${category}" data-id="${item.id}">
+      <button type="button" class="store-card${using ? ' using' : ''}" data-category="${category}" data-id="${item.id}">
         <div class="store-preview">${itemPreview(category, item)}</div>
         <span class="store-name">${item.name}</span>
         ${itemStatus(category, item)}
@@ -859,7 +883,10 @@ storeGrid.addEventListener('click', async event => {
     renderStore();
     return;
   }
-  if (!isItemBuyable(category, item)) return;
+  if (!isItemBuyable(category, item)) {
+    showToast(unavailableReason(category, item));
+    return;
+  }
 
   const ok = await showConfirm(`${item.name}を${item.price.toLocaleString()}コインで購入しますか？`, '購入する', 'primary');
   if (!ok || !isItemBuyable(category, item)) return;
@@ -1045,6 +1072,7 @@ $('confirm-modal-cancel').addEventListener('click', () => hideConfirm(false));
 $('confirm-modal-ok').addEventListener('click', () => hideConfirm(true));
 
 rollbackLockedItems();
+grantMorningRewards();
 updateLastStudyDate();
 applyCat();
 applyGauge();
