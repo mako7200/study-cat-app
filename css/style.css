@@ -1,5 +1,6 @@
 :root {
-  --bg: #0a0820;
+  --bg: #1d1a4a;
+  --ink: #0a0820;
   --card: rgba(255, 255, 255, 0.05);
   --text: #F0E9DD;
   --text-sub: #A89C8C;
@@ -128,9 +129,11 @@ button {
 .ring {
   position: absolute;
   inset: 0;
+  z-index: 1;
   width: 100%;
   height: 100%;
   transform: rotate(-90deg);
+  overflow: visible;
 }
 
 .ring circle {
@@ -265,7 +268,7 @@ button {
   border-radius: 10px;
   border: none;
   background: var(--primary);
-  color: var(--bg);
+  color: var(--ink);
 }
 
 .btn-start {
@@ -428,7 +431,7 @@ button {
 .store-seg-btn.selected {
   border-color: var(--primary);
   background: var(--primary);
-  color: var(--bg);
+  color: var(--ink);
   font-weight: bold;
 }
 
@@ -968,7 +971,7 @@ button {
 .modal-btn-primary {
   border-color: var(--primary);
   background: var(--primary);
-  color: var(--bg);
+  color: var(--ink);
 }
 
 .modal-btn-danger {

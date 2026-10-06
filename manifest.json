@@ -4,8 +4,8 @@
   "description": "相棒の猫と一緒に、毎日の学びを記録するアプリ。",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#0a0820",
-  "theme_color": "#0a0820",
+  "background_color": "#1d1a4a",
+  "theme_color": "#1d1a4a",
   "orientation": "portrait-primary",
   "lang": "ja",
   "icons": [
