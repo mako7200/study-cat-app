@@ -14,7 +14,10 @@ const TAG_COLORS = ['#E07A5F', '#E6B655', '#6FA88C', '#5BA8B5', '#7B93D6', '#B08
 const MINUTE_OPTIONS = Array.from({ length: 23 }, (_, i) => 10 + i * 5);
 const UNDERSTANDING_LABEL = { '1': 'もう少し', '2': 'まあまあ', '3': 'バッチリ' };
 const CAT_IMAGES = { idle: 'images/cat-sleep.jpg', running: 'images/cat-back.jpg' };
-const RING_LENGTH = 2 * Math.PI * 54;
+const RING_RADIUS = 54;
+const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
+const MAX_MINUTES = 120;
+const MIN_MINUTES = 10;
 
 localStorage.removeItem('studyCatLogs');
 
@@ -41,7 +44,9 @@ let tickTimer = null;
 
 const $ = id => document.getElementById(id);
 const timerView = $('timer-view');
+const catRing = document.querySelector('.cat-ring');
 const ringProgress = $('ring-progress');
+const ringKnob = $('ring-knob');
 const catImg = $('cat-img');
 const tagBtn = $('btn-tag');
 const tagDot = $('tag-dot');
@@ -114,19 +119,68 @@ function renderTimer() {
   tagNameEl.textContent = tag.name;
 
   if (running) {
-    const total = running.minutes * 60;
     const elapsed = Math.floor((Date.now() - running.startAt) / 1000);
-    timerDisplay.textContent = formatTime(Math.max(total - elapsed, 0));
-    ringProgress.style.strokeDashoffset = RING_LENGTH * (1 - Math.min(elapsed / total, 1));
+    const remain = Math.max(running.minutes * 60 - elapsed, 0);
+    timerDisplay.textContent = formatTime(remain);
+    setGauge(remain / (MAX_MINUTES * 60));
   } else {
     timerDisplay.textContent = formatTime(prefs.minutes * 60);
-    ringProgress.style.strokeDashoffset = RING_LENGTH;
+    setGauge(prefs.minutes / MAX_MINUTES);
   }
 
-  startBtn.textContent = running ? 'やめる' : '始める';
+  startBtn.textContent = running ? 'おわる' : 'はじめる';
   timerView.classList.toggle('is-running', !!running);
   setCat(running ? 'running' : 'idle');
 }
+
+function setGauge(ratio) {
+  const angle = ratio * 2 * Math.PI;
+  ringProgress.style.strokeDashoffset = RING_LENGTH * (1 - ratio);
+  ringKnob.setAttribute('cx', 60 + RING_RADIUS * Math.cos(angle));
+  ringKnob.setAttribute('cy', 60 + RING_RADIUS * Math.sin(angle));
+}
+
+function minutesFromPointer(event) {
+  const rect = catRing.getBoundingClientRect();
+  const dx = event.clientX - (rect.left + rect.width / 2);
+  const dy = event.clientY - (rect.top + rect.height / 2);
+  const angle = (Math.atan2(dx, -dy) + 2 * Math.PI) % (2 * Math.PI);
+  const minutes = Math.round(angle / (2 * Math.PI) * MAX_MINUTES / 5) * 5;
+  if (prefs.minutes >= 90 && minutes <= 30) return MAX_MINUTES;
+  if (prefs.minutes <= 30 && minutes >= 90) return MIN_MINUTES;
+  return Math.min(Math.max(minutes, MIN_MINUTES), MAX_MINUTES);
+}
+
+function isOnRing(event) {
+  const rect = catRing.getBoundingClientRect();
+  const dx = event.clientX - (rect.left + rect.width / 2);
+  const dy = event.clientY - (rect.top + rect.height / 2);
+  const distance = Math.hypot(dx, dy) / rect.width;
+  return distance >= 0.38 && distance <= 0.56;
+}
+
+catRing.addEventListener('pointerdown', event => {
+  if (running || !isOnRing(event)) return;
+  catRing.setPointerCapture(event.pointerId);
+  catRing.classList.add('dragging');
+});
+
+catRing.addEventListener('pointermove', event => {
+  if (!catRing.classList.contains('dragging')) return;
+  const minutes = minutesFromPointer(event);
+  if (minutes === prefs.minutes) return;
+  prefs.minutes = minutes;
+  renderTimer();
+});
+
+function endDrag() {
+  if (!catRing.classList.contains('dragging')) return;
+  catRing.classList.remove('dragging');
+  savePrefs();
+}
+
+catRing.addEventListener('pointerup', endDrag);
+catRing.addEventListener('pointercancel', endDrag);
 
 function tick() {
   if (!running) return;
@@ -182,9 +236,9 @@ startBtn.addEventListener('click', async () => {
   }
   const minutes = Math.floor((Date.now() - running.startAt) / 60000);
   const message = minutes >= 1
-    ? `ここまでの${minutes}分を記録して終了しますか？`
-    : '1分未満のため記録されません。終了しますか？';
-  const ok = await showConfirm(message, '終了する');
+    ? `ここまでの${minutes}分を記録しておわりますか？`
+    : '1分未満のため記録されません。おわりますか？';
+  const ok = await showConfirm(message, 'おわる');
   if (ok && running) finish(minutes);
 });
 

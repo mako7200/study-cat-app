@@ -102,13 +102,32 @@ main {
   stroke: rgba(255, 255, 255, 0.1);
 }
 
+.cat-ring {
+  touch-action: none;
+}
+
 .ring-progress {
   stroke: var(--primary);
   stroke-linecap: round;
+}
+
+.timer-view.is-running .ring-progress {
   transition: stroke-dashoffset 1s linear;
 }
 
+.ring .ring-knob {
+  fill: var(--primary);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.timer-view.is-running .ring-knob {
+  display: none;
+}
+
 .cat-img {
+  -webkit-user-drag: none;
+  user-select: none;
   position: absolute;
   inset: 11%;
   width: 78%;
