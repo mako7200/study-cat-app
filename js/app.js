@@ -1,9 +1,3 @@
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js', { scope: './', updateViaCache: 'none' });
-  });
-}
-
 const KEYS = {
   sessions: 'studyCatSessions',
   tags: 'studyCatTags',
@@ -20,6 +14,7 @@ const RING_RADIUS = 54;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 const MIN_MINUTES = 10;
 const DEV_CODE = 'matatabi';
+const UPDATED_FLAG = 'studyCatJustUpdated';
 
 const SHOP = {
   gauge: [
@@ -700,6 +695,104 @@ $('dev-off').addEventListener('click', () => {
   refreshShopState();
 });
 
+document.querySelectorAll('.accordion-head').forEach(head => {
+  head.addEventListener('click', () => {
+    const open = head.getAttribute('aria-expanded') !== 'true';
+    head.setAttribute('aria-expanded', open);
+    head.nextElementSibling.hidden = !open;
+  });
+});
+
+let toastTimer = null;
+
+function showToast(message) {
+  const toast = $('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+let swRegistration = null;
+let waitingWorker = null;
+
+function applyUpdate(worker) {
+  worker.postMessage({ type: 'SKIP_WAITING' });
+}
+
+function showUpdateBanner(worker) {
+  waitingWorker = worker;
+  $('update-banner').classList.add('show');
+}
+
+$('update-btn').addEventListener('click', () => {
+  $('update-banner').classList.remove('show');
+  if (waitingWorker) applyUpdate(waitingWorker);
+});
+
+function waitForInstalled(reg) {
+  if (reg.waiting) return Promise.resolve(reg.waiting);
+  const worker = reg.installing;
+  if (!worker) return Promise.resolve(null);
+  return new Promise(resolve => {
+    worker.addEventListener('statechange', () => {
+      if (worker.state === 'installed') resolve(worker);
+      if (worker.state === 'redundant') resolve(null);
+    });
+  });
+}
+
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    localStorage.setItem(UPDATED_FLAG, '1');
+    location.reload();
+  });
+  navigator.serviceWorker.register('./service-worker.js', { scope: './', updateViaCache: 'none' })
+    .then(reg => {
+      swRegistration = reg;
+      const checkWaiting = () => {
+        if (reg.waiting && navigator.serviceWorker.controller) showUpdateBanner(reg.waiting);
+      };
+      reg.addEventListener('updatefound', () => {
+        const worker = reg.installing;
+        worker.addEventListener('statechange', () => {
+          if (worker.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner(worker);
+        });
+      });
+      checkWaiting();
+      reg.update().catch(() => {});
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible') return;
+        reg.update().catch(() => {});
+        checkWaiting();
+      });
+    })
+    .catch(() => {});
+}
+
+$('btn-fetch-latest').addEventListener('click', () => {
+  if (!swRegistration) {
+    showToast('この環境では更新できません');
+    return;
+  }
+  showToast('確認中...');
+  swRegistration.update()
+    .then(() => waitForInstalled(swRegistration))
+    .then(worker => {
+      if (worker && navigator.serviceWorker.controller) {
+        showToast('最新版を取得しています...');
+        applyUpdate(worker);
+      } else {
+        showToast('最新バージョンです');
+      }
+    })
+    .catch(() => showToast('取得に失敗しました。通信状況をご確認ください'));
+});
+
 let confirmResolve = null;
 
 function showConfirm(message, okLabel, tone = 'danger') {
@@ -737,4 +830,9 @@ renderTimer();
 if (running) {
   tick();
   if (running) startTick();
+}
+registerServiceWorker();
+if (localStorage.getItem(UPDATED_FLAG)) {
+  localStorage.removeItem(UPDATED_FLAG);
+  showToast('アップデートしました');
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'study-cat-v6';
+const CACHE_NAME = 'study-cat-v7';
 const CACHE_FILES = [
   './',
   './index.html',
@@ -31,4 +31,8 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
   );
+});
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });

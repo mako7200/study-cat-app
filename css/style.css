@@ -243,8 +243,7 @@ button {
   top: 0;
   bottom: 0;
   left: 0;
-  width: 30%;
-  min-width: 140px;
+  width: 50%;
   background: linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04)), var(--bg);
   border-right: 1px solid var(--border);
   padding: calc(64px + env(safe-area-inset-top)) 0 20px;
@@ -652,11 +651,113 @@ button {
   line-height: 1;
 }
 
-.version-tag {
-  margin-top: auto;
-  text-align: center;
-  font-size: 0.7rem;
+.accordion {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
+.accordion-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border: none;
+  background: none;
+  font-size: 0.92rem;
+}
+
+.accordion-head svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--text-sub);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s ease;
+}
+
+.accordion-head[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.accordion-body {
+  padding: 0 16px 16px;
+}
+
+.accordion-body[hidden] {
+  display: none;
+}
+
+.app-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.app-version {
+  font-size: 0.85rem;
   color: var(--text-sub);
+  font-variant-numeric: tabular-nums;
+}
+
+.btn-small {
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--primary);
+  background: transparent;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.update-banner {
+  position: fixed;
+  left: 50%;
+  top: calc(12px + env(safe-area-inset-top));
+  width: calc(100% - 32px);
+  max-width: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--primary);
+  background: linear-gradient(rgba(111, 168, 140, 0.15), rgba(111, 168, 140, 0.15)), var(--bg);
+  font-size: 0.85rem;
+  z-index: 110;
+  transform: translate(-50%, -150%);
+  transition: transform 0.3s ease;
+}
+
+.update-banner.show {
+  transform: translate(-50%, 0);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(32px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08)), var(--bg);
+  font-size: 0.82rem;
+  white-space: nowrap;
+  z-index: 120;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.toast.show {
+  opacity: 1;
 }
 
 .sheet-overlay {
