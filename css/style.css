@@ -11,6 +11,7 @@
   --paw-foot: #F6EDE0;
   --paw-bean: #F2A0B6;
   --neon-core: #FFD6D6;
+  --hanko: #E0605A;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1091,4 +1092,212 @@ button {
   height: 80%;
   border-radius: 50%;
   object-fit: cover;
+}
+
+.cal-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.cal-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  min-width: 0;
+}
+
+.cal-stat-label {
+  font-size: 0.68rem;
+  color: var(--text-sub);
+}
+
+.cal-stat-value {
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cal-month {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.cal-month .icon-btn:disabled {
+  opacity: 0.25;
+}
+
+.cal-title {
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text-sub);
+}
+
+.cal-week .sun {
+  color: #D88A80;
+}
+
+.cal-week .sat {
+  color: #8AA6D8;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.cal-cell {
+  position: relative;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 8px;
+  background: var(--card);
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.cal-empty {
+  background: none;
+}
+
+.cal-cell.future {
+  opacity: 0.35;
+}
+
+.cal-cell.today {
+  box-shadow: inset 0 0 0 1.5px var(--primary);
+}
+
+.cal-num {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  font-size: 0.6rem;
+  color: var(--text-sub);
+  font-variant-numeric: tabular-nums;
+}
+
+.cal-cell.studied .cal-num {
+  color: var(--text);
+}
+
+.cal-stamp {
+  width: 76%;
+  height: 76%;
+  margin-top: 4px;
+}
+
+.hanko-ink {
+  fill: var(--hanko);
+  opacity: 0.92;
+}
+
+.hanko-ink .hanko-ring {
+  fill: none;
+  stroke: var(--hanko);
+  stroke-width: 2.4;
+}
+
+.hanko-face {
+  fill: var(--bg);
+}
+
+.day-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.95rem;
+  font-weight: bold;
+}
+
+.day-total {
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+}
+
+.day-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.day-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 0.88rem;
+}
+
+.day-row-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.day-row-min {
+  color: var(--text-sub);
+  font-variant-numeric: tabular-nums;
+}
+
+.x2-badge {
+  margin-left: 2px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #2a1d05;
+  font-size: 0.72rem;
+  font-weight: bold;
+}
+
+.morning-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: -8px;
+  font-size: 0.8rem;
+  color: var(--gold);
+}
+
+.morning-hint svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.bonus-tag {
+  margin-left: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(230, 182, 85, 0.5);
+  font-size: 0.72rem;
+}
+
+.x2-badge[hidden],
+.morning-hint[hidden],
+.bonus-tag[hidden] {
+  display: none;
 }

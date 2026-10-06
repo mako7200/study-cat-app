@@ -14,6 +14,8 @@ const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 const MIN_MINUTES = 10;
 const DEV_CODE = 'matatabi';
 const UPDATED_FLAG = 'studyCatJustUpdated';
+const MORNING_START = 6;
+const MORNING_END = 10;
 
 const SHOP = {
   cat: [
@@ -276,6 +278,7 @@ function renderTimer() {
   startBtn.textContent = running ? 'おわる' : 'はじめる';
   timerView.classList.toggle('is-running', !!running);
   setCat(catState());
+  renderMorning();
 }
 
 function minutesFromPointer(event) {
@@ -335,9 +338,24 @@ function startTick() {
   tickTimer = setInterval(tick, 1000);
 }
 
+function isMorning(ms) {
+  const hour = new Date(ms).getHours();
+  return hour >= MORNING_START && hour < MORNING_END;
+}
+
+function renderMorning() {
+  const active = running ? !!running.morning : isMorning(Date.now());
+  $('x2-badge').hidden = !active;
+  $('morning-hint').hidden = !active;
+}
+
+setInterval(() => {
+  if (!running) renderMorning();
+}, 30000);
+
 function start() {
   const tag = currentTag();
-  running = { startAt: Date.now(), minutes: prefs.minutes, tagId: tag.id, tagName: tag.name };
+  running = { startAt: Date.now(), minutes: prefs.minutes, tagId: tag.id, tagName: tag.name, morning: isMorning(Date.now()) };
   save(KEYS.running, running);
   renderTimer();
   startTick();
@@ -359,12 +377,14 @@ function finish(minutes) {
     tagId: record.tagId,
     tagName: record.tagName,
     minutes,
+    coins: record.morning ? minutes * 2 : minutes,
+    morning: !!record.morning,
     understanding: null,
     memo: ''
   };
   sessions.push(session);
   save(KEYS.sessions, sessions);
-  coins += minutes;
+  coins += session.coins;
   save(KEYS.coins, coins);
   renderCoins();
   renderStore();
@@ -402,7 +422,8 @@ function openDone(session) {
   doneMemo.value = '';
   understandingSelect.querySelectorAll('.understanding-btn').forEach(b => b.classList.remove('selected'));
   $('done-minutes').textContent = `${session.minutes} min`;
-  $('done-coins').textContent = `+${session.minutes}`;
+  $('done-coins').textContent = `+${session.coins ?? session.minutes}`;
+  $('done-bonus').hidden = !session.morning;
   $('done-sub').textContent = `${session.tagName}　お疲れさま`;
   doneModal.classList.add('show');
 }
@@ -448,6 +469,11 @@ $('btn-menu').addEventListener('click', openDrawer);
 drawer.addEventListener('click', event => {
   const item = event.target.closest('.menu-item');
   if (item) {
+    if (item.dataset.page === 'page-calendar') {
+      const now = new Date();
+      calMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      renderCalendar();
+    }
     $(item.dataset.page).classList.add('show');
     closeDrawer();
     return;
@@ -596,6 +622,7 @@ function renderAllTags() {
 }
 
 function renderLogs() {
+  renderCalendar();
   const sessions = load(KEYS.sessions, []);
   if (sessions.length === 0) {
     logList.innerHTML = '<div class="log-empty">まだ記録がありません。<br>タイマーで勉強をはじめてみましょう。</div>';
@@ -629,6 +656,112 @@ logList.addEventListener('click', async event => {
   updateLastStudyDate();
   renderLogs();
   renderTimer();
+});
+
+const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+const HANKO = '<g class="hanko-ink"><circle cx="20" cy="20" r="16.5" class="hanko-ring" /><ellipse cx="20" cy="22.5" rx="8.2" ry="7" /><path d="M12.6 19.5L12.2 11l6 5.6zM27.4 19.5L27.8 11l-6 5.6z" /></g><g class="hanko-face"><ellipse cx="16.8" cy="22" rx="1" ry="1.3" /><ellipse cx="23.2" cy="22" rx="1" ry="1.3" /><path d="M19.2 24.6h1.6L20 25.6z" /></g>';
+let calMonth = null;
+
+function formatDuration(minutes) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return h ? `${h}時間${m}分` : `${m}分`;
+}
+
+function sessionsByDate() {
+  const map = {};
+  load(KEYS.sessions, []).forEach(s => {
+    (map[s.date] = map[s.date] || []).push(s);
+  });
+  return map;
+}
+
+function streakDays(byDate) {
+  const d = new Date();
+  if (!byDate[dateStr(d)]) d.setDate(d.getDate() - 1);
+  let count = 0;
+  while (byDate[dateStr(d)]) {
+    count++;
+    d.setDate(d.getDate() - 1);
+  }
+  return count;
+}
+
+function monthKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function renderCalendar() {
+  if (!calMonth) return;
+  const byDate = sessionsByDate();
+  const now = new Date();
+  const today = dateStr(now);
+  const thisMonth = monthKey(now);
+
+  const monthTotal = Object.keys(byDate)
+    .filter(date => date.startsWith(thisMonth))
+    .reduce((sum, date) => sum + byDate[date].reduce((a, s) => a + s.minutes, 0), 0);
+  $('stat-streak').textContent = `${streakDays(byDate)}日`;
+  $('stat-total').textContent = formatDuration(monthTotal);
+  $('stat-avg').textContent = formatDuration(Math.round(monthTotal / now.getDate()));
+
+  const shown = monthKey(calMonth);
+  const firstMonth = Object.keys(byDate).sort()[0]?.slice(0, 7) || thisMonth;
+  $('cal-title').textContent = shown.replace('-', '.');
+  $('cal-prev').disabled = shown <= firstMonth;
+  $('cal-next').disabled = shown >= thisMonth;
+
+  const year = calMonth.getFullYear();
+  const month = calMonth.getMonth();
+  const lead = new Date(year, month, 1).getDay();
+  const days = new Date(year, month + 1, 0).getDate();
+  let html = '<div class="cal-cell cal-empty"></div>'.repeat(lead);
+  for (let d = 1; d <= days; d++) {
+    const date = `${shown}-${String(d).padStart(2, '0')}`;
+    const studied = !!byDate[date];
+    const classes = ['cal-cell', studied && 'studied', date === today && 'today', date > today && 'future'].filter(Boolean).join(' ');
+    const stamp = studied
+      ? `<svg class="cal-stamp" viewBox="0 0 40 40" style="transform:rotate(${((d * 37) % 30 - 15) / 1.5}deg)">${HANKO}</svg>`
+      : '';
+    html += `<button type="button" class="${classes}" data-date="${date}"><span class="cal-num">${d}</span>${stamp}</button>`;
+  }
+  $('cal-grid').innerHTML = html;
+}
+
+$('cal-prev').addEventListener('click', () => {
+  calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1);
+  renderCalendar();
+});
+
+$('cal-next').addEventListener('click', () => {
+  calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1);
+  renderCalendar();
+});
+
+$('cal-grid').addEventListener('click', event => {
+  const cell = event.target.closest('.cal-cell.studied');
+  if (!cell) return;
+  const date = cell.dataset.date;
+  const sessions = sessionsByDate()[date];
+  const byTag = {};
+  sessions.forEach(s => {
+    const tag = findTag(s.tagId);
+    const key = tag ? `id-${tag.id}` : `name-${s.tagName}`;
+    if (!byTag[key]) byTag[key] = { name: tag ? tag.name : s.tagName, color: tag ? tag.color : 'var(--text-sub)', minutes: 0 };
+    byTag[key].minutes += s.minutes;
+  });
+  const [y, m, d] = date.split('-').map(Number);
+  const weekday = WEEKDAYS[new Date(y, m - 1, d).getDay()];
+  $('day-title').textContent = `${m}月${d}日（${weekday}）`;
+  $('day-total').textContent = `${sessions.reduce((a, s) => a + s.minutes, 0)} min`;
+  $('day-list').innerHTML = Object.values(byTag).sort((a, b) => b.minutes - a.minutes).map(t =>
+    `<div class="day-row"><span class="tag-dot" style="background:${t.color}"></span><span class="day-row-name">${escapeHtml(t.name)}</span><span class="day-row-min">${t.minutes} min</span></div>`
+  ).join('');
+  $('day-sheet').classList.add('show');
+});
+
+$('day-sheet').addEventListener('click', event => {
+  if (event.target === $('day-sheet')) $('day-sheet').classList.remove('show');
 });
 
 let storeCategory = 'cat';
