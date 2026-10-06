@@ -1,4 +1,4 @@
-const CACHE_NAME = 'study-cat-v9';
+const CACHE_NAME = 'study-cat-v10';
 const CACHE_FILES = [
   './',
   './index.html',
@@ -22,7 +22,7 @@ const CACHE_FILES = [
 
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(CACHE_FILES))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(CACHE_FILES.map(url => new Request(url, { cache: 'reload' }))))
   );
 });
 
