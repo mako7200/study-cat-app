@@ -109,6 +109,25 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
+#home-coin {
+  padding-right: 6px;
+}
+
+#home-coin:active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.coin-pill-chevron {
+  width: 14px;
+  height: 14px;
+  margin-left: -2px;
+  fill: none;
+  stroke: var(--text-sub);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .coin {
   width: 18px;
   height: 18px;

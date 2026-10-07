@@ -1,4 +1,4 @@
-const CACHE_NAME = 'study-cat-v17';
+const CACHE_NAME = 'study-cat-v18';
 const CACHE_FILES = [
   './',
   './index.html',

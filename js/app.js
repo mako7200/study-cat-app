@@ -21,40 +21,40 @@ const MORNING_END = 10;
 const SHOP = {
   cat: [
     { id: 'cat-noir', name: 'ノワール', price: 0, images: { idle: 'images/cat-sleep.jpg', running: 'images/cat-back.jpg', done: 'images/cat-sit.jpg' } },
-    { id: 'cat-luna', name: 'ルナ', price: 1000, images: { idle: 'images/cat-white-sleep.jpg', running: 'images/cat-white-back.jpg', done: 'images/cat-white-sit.jpg' } },
-    { id: 'cat-mike', name: 'ミケ', price: 2000, images: { idle: 'images/cat-calico-sleep.jpg', running: 'images/cat-calico-back.jpg', done: 'images/cat-calico-sit.jpg' } },
-    { id: 'cat-moka', name: 'モカ', price: 3000, images: { idle: 'images/cat-scottish-sleep.jpg', running: 'images/cat-scottish-back.jpg', done: 'images/cat-scottish-sit.jpg' } },
-    { id: 'cat-leo', name: 'レオ', price: 4000, images: { idle: 'images/cat-bengal-sleep.jpg', running: 'images/cat-bengal-back.jpg', done: 'images/cat-bengal-sit.jpg' } }
+    { id: 'cat-luna', name: 'ルナ', price: 600, images: { idle: 'images/cat-white-sleep.jpg', running: 'images/cat-white-back.jpg', done: 'images/cat-white-sit.jpg' } },
+    { id: 'cat-mike', name: 'ミケ', price: 1000, images: { idle: 'images/cat-calico-sleep.jpg', running: 'images/cat-calico-back.jpg', done: 'images/cat-calico-sit.jpg' } },
+    { id: 'cat-moka', name: 'モカ', price: 2000, images: { idle: 'images/cat-scottish-sleep.jpg', running: 'images/cat-scottish-back.jpg', done: 'images/cat-scottish-sit.jpg' } },
+    { id: 'cat-leo', name: 'レオ', price: 3000, images: { idle: 'images/cat-bengal-sleep.jpg', running: 'images/cat-bengal-back.jpg', done: 'images/cat-bengal-sit.jpg' } }
   ],
   gauge: [
     { id: 'gauge-wakaba', name: '若葉', price: 0, color: '#6FA88C' },
-    { id: 'gauge-kohaku', name: '琥珀', price: 100, color: '#E6B655' },
-    { id: 'gauge-sakura', name: '桜', price: 100, color: '#E8A0B4' },
-    { id: 'gauge-mizu', name: '水色', price: 100, color: '#5FC4D0' },
-    { id: 'gauge-hotaru', name: '蛍', price: 200, color: '#9AF0C0', glow: true },
-    { id: 'gauge-yubae', name: '夕映え', price: 300, color: '#7B93D6', gradientTo: '#E8A0B4' },
-    { id: 'gauge-laser', name: 'レーザーポインター', price: 2000, color: '#FF2A2A', neon: true }
+    { id: 'gauge-kohaku', name: '琥珀', price: 50, color: '#E6B655' },
+    { id: 'gauge-sakura', name: '桜', price: 50, color: '#E8A0B4' },
+    { id: 'gauge-mizu', name: '水色', price: 50, color: '#5FC4D0' },
+    { id: 'gauge-hotaru', name: '蛍', price: 100, color: '#9AF0C0', glow: true },
+    { id: 'gauge-yubae', name: '夕映え', price: 150, color: '#7B93D6', gradientTo: '#E8A0B4' },
+    { id: 'gauge-laser', name: 'レーザーポインター', price: 1000, color: '#FF2A2A', neon: true }
   ],
   knob: [
     { id: 'knob-circle', name: '丸', price: 0 },
-    { id: 'knob-paw', name: '肉球', price: 1000 }
+    { id: 'knob-paw', name: '肉球', price: 500 }
   ],
   theme: [
     { id: 'theme-mayonaka', name: '真夜中', price: 0, bg: '#1d1a4a' },
-    { id: 'theme-mori', name: '森', price: 300, bg: '#2f5a46' },
-    { id: 'theme-yoi', name: '宵', price: 300, bg: '#4a3270' },
-    { id: 'theme-danro', name: '暖炉', price: 300, bg: '#6a3a25' },
-    { id: 'theme-sakura', name: '桜', price: 300, bg: '#8a4a62' },
-    { id: 'theme-umi', name: '海', price: 300, bg: '#1f5f86' },
-    { id: 'theme-maccha', name: '抹茶', price: 300, bg: '#55703a' },
-    { id: 'theme-sumi', name: '墨', price: 300, bg: '#3a3a3e' },
-    { id: 'theme-yozakura', name: '夜桜', price: 500, bg: '#4a2038', gradient: 'linear-gradient(180deg, #b0607e 0%, #4a2038 75%)' },
-    { id: 'theme-shinkai', name: '深海', price: 500, bg: '#0f3550', gradient: 'linear-gradient(180deg, #2a7fa8 0%, #0f3550 80%)' },
-    { id: 'theme-yuyake', name: '夕焼け', price: 500, bg: '#6a2e3a', gradient: 'linear-gradient(180deg, #d0704a 0%, #6a2e3a 80%)' },
-    { id: 'theme-aurora', name: 'オーロラ', price: 500, bg: '#1d1a4a', gradient: 'linear-gradient(180deg, #3fa08a 0%, #3a3280 60%, #1d1a4a 100%)' },
-    { id: 'theme-matte', name: 'マットブラック', price: 1000, bg: '#0d0d0d', texture: true },
-    { id: 'theme-minato', name: '月夜の港', price: 2000, bg: '#0b1430', image: 'images/wall-minato.jpg', thumb: 'images/wall-minato-thumb.jpg' },
-    { id: 'theme-kogen', name: '高原', price: 2000, bg: '#0f1d24', image: 'images/wall-kogen.jpg', thumb: 'images/wall-kogen-thumb.jpg' },
+    { id: 'theme-mori', name: '森', price: 150, bg: '#2f5a46' },
+    { id: 'theme-yoi', name: '宵', price: 150, bg: '#4a3270' },
+    { id: 'theme-danro', name: '暖炉', price: 150, bg: '#6a3a25' },
+    { id: 'theme-sakura', name: '桜', price: 150, bg: '#8a4a62' },
+    { id: 'theme-umi', name: '海', price: 150, bg: '#1f5f86' },
+    { id: 'theme-maccha', name: '抹茶', price: 150, bg: '#55703a' },
+    { id: 'theme-sumi', name: '墨', price: 150, bg: '#3a3a3e' },
+    { id: 'theme-yozakura', name: '夜桜', price: 250, bg: '#4a2038', gradient: 'linear-gradient(180deg, #b0607e 0%, #4a2038 75%)' },
+    { id: 'theme-shinkai', name: '深海', price: 250, bg: '#0f3550', gradient: 'linear-gradient(180deg, #2a7fa8 0%, #0f3550 80%)' },
+    { id: 'theme-yuyake', name: '夕焼け', price: 250, bg: '#6a2e3a', gradient: 'linear-gradient(180deg, #d0704a 0%, #6a2e3a 80%)' },
+    { id: 'theme-aurora', name: 'オーロラ', price: 250, bg: '#1d1a4a', gradient: 'linear-gradient(180deg, #3fa08a 0%, #3a3280 60%, #1d1a4a 100%)' },
+    { id: 'theme-matte', name: 'マットブラック', price: 500, bg: '#0d0d0d', texture: true },
+    { id: 'theme-minato', name: '月夜の港', price: 1000, bg: '#0b1430', image: 'images/wall-minato.jpg', thumb: 'images/wall-minato-thumb.jpg' },
+    { id: 'theme-kogen', name: '高原', price: 1000, bg: '#0f1d24', image: 'images/wall-kogen.jpg', thumb: 'images/wall-kogen-thumb.jpg' },
     { id: 'theme-asa', name: '朝のひととき', morningGoal: 7, bg: '#14141c', image: 'images/wall-asa.jpg', thumb: 'images/wall-asa-thumb.jpg' }
   ]
 };
@@ -516,6 +516,8 @@ function closeDrawer() {
 }
 
 $('btn-menu').addEventListener('click', openDrawer);
+
+$('home-coin').addEventListener('click', () => $('page-store').classList.add('show'));
 
 drawer.addEventListener('click', event => {
   const item = event.target.closest('.menu-item');
