@@ -21,7 +21,10 @@
     <button type="button" class="icon-btn" id="btn-menu" aria-label="メニュー">
       <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
     </button>
-    <button type="button" class="coin-pill" id="home-coin" aria-label="ストアを開く"><span class="coin"></span><span class="coin-count">0</span><span class="x2-badge" id="x2-badge" hidden>×2</span><svg class="coin-pill-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
+    <div class="topbar-right">
+      <button type="button" class="coin-pill bond-pill" id="home-bond" aria-label="なつき度を見る"><svg class="heart-icon" viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-7.5-10.2C4.5 7.4 6.6 5.5 9 5.5c1.4 0 2.4.7 3 1.6.6-.9 1.6-1.6 3-1.6 2.4 0 4.5 1.9 4.5 4.8 0 5.6-7.5 10.2-7.5 10.2z" /></svg><span id="bond-days">0</span><svg class="coin-pill-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
+      <button type="button" class="coin-pill" id="home-coin" aria-label="ストアを開く"><span class="coin"></span><span class="coin-count">0</span><span class="x2-badge" id="x2-badge" hidden>×2</span><svg class="coin-pill-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
+    </div>
   </header>
 
   <main class="timer-view" id="timer-view">
@@ -62,6 +65,12 @@
         </g>
       </svg>
       <img class="cat-img" id="cat-img" src="images/cat-sleep.jpg" alt="">
+      <div class="cat-away">
+        <svg class="away-letter" viewBox="0 0 64 72"><rect x="2" y="2" width="60" height="68" rx="4" class="away-paper" /><path d="M12 18h40M12 28h40M12 38h26" class="away-line" /><g class="away-paw" transform="translate(44 54)"><ellipse cx="0" cy="4" rx="7" ry="6" /><circle cx="-7" cy="-4" r="2.6" /><circle cx="-2.4" cy="-7.5" r="2.6" /><circle cx="2.4" cy="-7.5" r="2.6" /><circle cx="7" cy="-4" r="2.6" /></g></svg>
+        <span class="away-text">さがさないでください</span>
+        <span class="away-sub">勉強すると帰ってきます</span>
+      </div>
+      <span class="cat-bubble" id="cat-bubble" hidden></span>
     </div>
     <button type="button" class="tag-chip" id="btn-tag">
       <span class="tag-dot" id="tag-dot"></span>
@@ -165,6 +174,44 @@
     </div>
   </section>
 
+  <section class="page" id="page-bond">
+    <div class="page-head">
+      <button type="button" class="icon-btn page-close" aria-label="閉じる"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
+      <span class="page-title">なつき度</span>
+      <span class="page-head-side"></span>
+    </div>
+    <div class="page-body">
+      <div class="bond-me">
+        <img class="bond-me-cat" id="bond-me-cat" src="images/cat-sit.jpg" alt="">
+        <div class="bond-me-text">
+          <span class="bond-me-name" id="bond-me-name"></span>
+          <span class="bond-me-stage"><span id="bond-me-stage"></span><span class="bond-hearts" id="bond-me-hearts"></span></span>
+          <span class="bond-me-days"><span id="bond-me-days"></span><span class="bond-me-rate" id="bond-me-rate"></span></span>
+          <span class="bond-me-mood" id="bond-me-mood" hidden></span>
+        </div>
+      </div>
+      <div class="bond-next">
+        <div class="bond-next-row"><span id="bond-next-label"></span><b id="bond-next-left"></b></div>
+        <div class="bond-bar"><span id="bond-bar"></span></div>
+      </div>
+      <button type="button" class="bond-today" id="bond-today">
+        <span>今日の目標</span>
+        <b id="bond-today-value"></b>
+        <small id="bond-today-note"></small>
+      </button>
+      <div class="section-title">段階</div>
+      <div class="bond-stages" id="bond-stages"></div>
+      <div class="section-title">なつき度の上げ方</div>
+      <ul class="bond-how">
+        <li>目標を達成した日に <b>+1日</b>（1日1回まで）</li>
+        <li>2日勉強しないと<b>すねる</b>、4日で<b>家出</b>（家出中は毎日 −1日）</li>
+        <li>勉強すれば、すぐ帰ってくる</li>
+        <li>段階が上がると、もらえる<b>コインが増える</b>（すねている時と家出中は増えない）</li>
+      </ul>
+      <p class="bond-foot">なつき度は猫ごとに別々です。1日の目標は、上の「今日の目標」をタップして変えられます。</p>
+    </div>
+  </section>
+
   <section class="page" id="page-settings">
     <div class="page-head">
       <button type="button" class="icon-btn page-close" aria-label="閉じる"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
@@ -191,6 +238,19 @@
               <button type="button" class="dev-off" id="dev-off">OFFにする</button>
             </div>
             <div class="dev-note">ONの間はストアの商品がすべて使えます。OFFにすると、未購入の商品は元に戻ります。</div>
+            <div class="dev-label">最後に勉強した日（なつき度のテスト用）</div>
+            <div class="dev-row" id="dev-last-study">
+              <button type="button" class="dev-off" data-shift="3">すねる</button>
+              <button type="button" class="dev-off" data-shift="5">家出</button>
+              <button type="button" class="dev-off" data-shift="7">家出3日目</button>
+              <button type="button" class="dev-off" data-shift="0">元に戻す</button>
+            </div>
+            <div class="dev-label">使っている猫のなつき日数</div>
+            <div class="dev-field">
+              <input type="number" class="text-input" id="dev-bond-days" min="0" inputmode="numeric">
+              <button type="button" class="btn-primary" id="dev-bond-apply">反映</button>
+            </div>
+            <button type="button" class="dev-off" id="dev-goal-reset">目標の案内をもう一度出す</button>
           </div>
         </div>
       </div>
@@ -201,7 +261,7 @@
         </button>
         <div class="accordion-body" hidden>
           <div class="app-info-row">
-            <span class="app-version">Version 0.11.3</span>
+            <span class="app-version">Version 0.12.0</span>
             <button type="button" class="btn-small" id="btn-fetch-latest">最新版を取得</button>
           </div>
         </div>
@@ -217,6 +277,16 @@
       <div class="section-title">タグ</div>
       <div class="sheet-tags" id="sheet-tags"></div>
       <button type="button" class="btn-primary" id="setup-sheet-close">決定</button>
+    </div>
+  </div>
+
+  <div class="sheet-overlay" id="goal-sheet">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="goal-title">1日の目標</div>
+      <div class="goal-lead">毎日の勉強時間が目標に届くと、猫のなつき度が +1日 されます。</div>
+      <div class="goal-grid" id="goal-grid"></div>
+      <div class="goal-note">変えた目標は、今日の分からすぐに使われます。</div>
     </div>
   </div>
 
@@ -246,7 +316,7 @@
       <span class="done-tag" id="done-tag"><span class="tag-dot"></span><span id="done-tag-name"></span></span>
       <img class="done-cat" id="done-cat" src="images/cat-sit.jpg" alt="">
       <div class="done-minutes" id="done-minutes"></div>
-      <div class="done-coins" id="done-coins-row"><span class="coin"></span><span id="done-coins"></span><span class="bonus-tag" id="done-bonus" hidden>朝活ボーナス ×2</span></div>
+      <div class="done-coins" id="done-coins-row"><span class="coin"></span><span id="done-coins"></span><span class="bonus-tag" id="done-bonus" hidden>朝活ボーナス ×2</span><span class="bonus-tag bond-tag" id="done-bond-bonus" hidden></span></div>
       <div class="done-sub" id="done-sub"></div>
       <div class="done-unlock" id="done-unlock" hidden></div>
       <div class="understanding-select" id="understanding-select">

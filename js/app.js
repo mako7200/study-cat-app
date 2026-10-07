@@ -5,7 +5,8 @@ const KEYS = {
   running: 'studyCatRunning',
   coins: 'studyCatCoins',
   shop: 'studyCatShop',
-  admin: 'studyCatAdmin'
+  admin: 'studyCatAdmin',
+  bond: 'studyCatBond'
 };
 const TAG_COLORS = ['#E07A5F', '#E6B655', '#6FA88C', '#5BA8B5', '#7B93D6', '#B08BD0'];
 const UNDERSTANDING_LABEL = { '1': 'もう少し', '2': 'まあまあ', '3': 'バッチリ' };
@@ -17,6 +18,18 @@ const DEV_CODE = 'matatabi';
 const UPDATED_FLAG = 'studyCatJustUpdated';
 const MORNING_START = 6;
 const MORNING_END = 10;
+const BOND_STAGES = [
+  { name: 'はじめまして', days: 0, voice: '…', rate: 10 },
+  { name: 'なれてきた', days: 3, voice: 'にゃ？', rate: 11 },
+  { name: 'なかよし', days: 10, voice: 'にゃーん', rate: 12 },
+  { name: 'だいすき', days: 30, voice: 'すりすり', rate: 13 },
+  { name: 'あいぼう', days: 60, voice: 'ごろにゃん', rate: 14 },
+  { name: 'かぞく', days: 100, voice: 'ごろごろ', rate: 15 }
+];
+const GOAL_OPTIONS = [10, 15, 30, 60, 90, 120];
+const SULK_DAYS = 2;
+const AWAY_DAYS = 4;
+const HEART_PATH = 'M12 20.5s-7.5-4.6-7.5-10.2C4.5 7.4 6.6 5.5 9 5.5c1.4 0 2.4.7 3 1.6.6-.9 1.6-1.6 3-1.6 2.4 0 4.5 1.9 4.5 4.8 0 5.6-7.5 10.2-7.5 10.2z';
 
 const SHOP = {
   cat: [
@@ -92,6 +105,7 @@ let running = load(KEYS.running, null);
 let coins = load(KEYS.coins, 0);
 let shop = { owned: [], ...DEFAULT_EQUIP, ...load(KEYS.shop, {}) };
 let isAdmin = load(KEYS.admin, false);
+let bond = { days: {}, goal: 30, goalAsked: false, creditDate: null, penaltyBase: null, penaltyApplied: 0, returnDate: null, devLastStudy: null, ...load(KEYS.bond, {}) };
 let tickTimer = null;
 let lastStudyDate = null;
 
@@ -254,7 +268,7 @@ function applyKnob() {
 
 function applyCat() {
   $('done-cat').src = equippedItem('cat').images.done;
-  setCat(catState());
+  renderBond();
 }
 
 function updateLastStudyDate() {
@@ -268,9 +282,178 @@ function catState() {
 }
 
 function setCat(state) {
-  const src = equippedItem('cat').images[state];
-  if (catImg.getAttribute('src') === src) return;
-  catImg.src = src;
+  const mood = bondMood();
+  timerView.classList.toggle('is-sulk', mood === 'sulk' && state !== 'running');
+  timerView.classList.toggle('is-away', mood === 'away');
+  const src = equippedItem('cat').images[mood === 'sulk' ? 'running' : state];
+  if (catImg.getAttribute('src') !== src) catImg.src = src;
+  renderBubble();
+}
+
+function saveBond() {
+  save(KEYS.bond, bond);
+}
+
+function daysBetween(from, to) {
+  const [fy, fm, fd] = from.split('-').map(Number);
+  const [ty, tm, td] = to.split('-').map(Number);
+  return Math.round((new Date(ty, tm - 1, td) - new Date(fy, fm - 1, fd)) / 86400000);
+}
+
+function bondLastStudy() {
+  return isAdmin && bond.devLastStudy ? bond.devLastStudy : lastStudyDate;
+}
+
+function missedDays() {
+  const last = bondLastStudy();
+  if (!last) return 0;
+  return Math.max(daysBetween(last, dateStr(Date.now())) - 1, 0);
+}
+
+function bondMood() {
+  const missed = missedDays();
+  if (missed >= AWAY_DAYS) return 'away';
+  if (missed >= SULK_DAYS) return 'sulk';
+  return 'normal';
+}
+
+function catBondDays(catId = equippedItem('cat').id) {
+  return bond.days[catId] || 0;
+}
+
+function addBondDays(delta) {
+  const catId = equippedItem('cat').id;
+  bond.days[catId] = Math.max(catBondDays(catId) + delta, 0);
+}
+
+function applyBondPenalty() {
+  const target = Math.max(missedDays() - AWAY_DAYS + 1, 0);
+  const base = bondLastStudy();
+  if (bond.penaltyBase !== base) {
+    bond.penaltyBase = base;
+    bond.penaltyApplied = 0;
+  }
+  if (target > bond.penaltyApplied) {
+    addBondDays(bond.penaltyApplied - target);
+    bond.penaltyApplied = target;
+  }
+  saveBond();
+}
+
+function todayMinutes() {
+  const today = dateStr(Date.now());
+  return load(KEYS.sessions, []).filter(s => s.date === today).reduce((sum, s) => sum + s.minutes, 0);
+}
+
+function creditBond() {
+  const today = dateStr(Date.now());
+  if (bond.creditDate === today || todayMinutes() < bond.goal) return false;
+  addBondDays(1);
+  bond.creditDate = today;
+  saveBond();
+  return true;
+}
+
+function stageIndex(days) {
+  let index = 0;
+  BOND_STAGES.forEach((stage, i) => {
+    if (days >= stage.days) index = i;
+  });
+  return index;
+}
+
+function formatRate(rate) {
+  return `×${(rate / 10).toFixed(1)}`;
+}
+
+function heartsHtml(count) {
+  return BOND_STAGES.slice(1).map((_, i) =>
+    `<svg class="heart-icon${i < count ? ' on' : ''}" viewBox="0 0 24 24"><path d="${HEART_PATH}" /></svg>`
+  ).join('');
+}
+
+let bubbleTimer = null;
+let bubbleVoice = null;
+
+function renderBubble() {
+  const mood = bondMood();
+  let text = mood === 'away' ? null : bubbleVoice;
+  if (!text && !running && mood === 'sulk') text = 'ぷい';
+  if (!text && !running && mood === 'normal' && bond.returnDate === dateStr(Date.now())) text = 'ただいま';
+  const bubble = $('cat-bubble');
+  bubble.hidden = !text;
+  bubble.textContent = text || '';
+}
+
+function speak() {
+  const mood = bondMood();
+  if (mood === 'away') return;
+  bubbleVoice = mood === 'sulk' ? 'ふん' : BOND_STAGES[stageIndex(catBondDays())].voice;
+  renderBubble();
+  clearTimeout(bubbleTimer);
+  bubbleTimer = setTimeout(() => {
+    bubbleVoice = null;
+    renderBubble();
+  }, 2000);
+}
+
+function renderBond() {
+  applyBondPenalty();
+  const mood = bondMood();
+  const cat = equippedItem('cat');
+  const days = catBondDays(cat.id);
+  const index = stageIndex(days);
+  $('bond-days').textContent = days;
+  $('home-bond').classList.toggle('sad', mood !== 'normal');
+
+  $('bond-me-cat').src = cat.images.done;
+  $('bond-me-name').textContent = cat.name;
+  $('bond-me-stage').textContent = BOND_STAGES[index].name;
+  $('bond-me-hearts').innerHTML = heartsHtml(index);
+  $('bond-me-days').textContent = `${days}日`;
+  $('bond-me-rate').textContent = `コイン ${formatRate(BOND_STAGES[index].rate)}`;
+  $('bond-me-mood').hidden = mood === 'normal';
+  $('bond-me-mood').textContent = mood === 'away' ? '家出中です。勉強すると帰ってきます' : 'すねています。勉強すると機嫌が直ります';
+
+  const next = BOND_STAGES[index + 1];
+  if (next) {
+    const current = BOND_STAGES[index];
+    $('bond-next-label').textContent = `${next.name} まで`;
+    $('bond-next-left').textContent = `あと${next.days - days}日`;
+    $('bond-bar').style.width = `${(days - current.days) / (next.days - current.days) * 100}%`;
+  } else {
+    $('bond-next-label').textContent = 'いちばん上の段階です';
+    $('bond-next-left').textContent = '';
+    $('bond-bar').style.width = '100%';
+  }
+
+  const total = todayMinutes();
+  $('bond-today-value').textContent = `${Math.min(total, bond.goal)} / ${bond.goal}分 ›`;
+  $('bond-today-note').textContent = bond.creditDate === dateStr(Date.now())
+    ? '今日は +1日 しました'
+    : `あと${Math.max(bond.goal - total, 0)}分で +1日`;
+
+  $('bond-stages').innerHTML = BOND_STAGES.map((stage, i) =>
+    `<div class="bond-stage${i === index ? ' current' : ''}"><span class="bond-hearts">${heartsHtml(i)}</span><span class="bond-stage-name">${stage.name}</span><span class="bond-stage-days">${stage.days}日</span><span class="bond-stage-rate">${formatRate(stage.rate)}</span></div>`
+  ).join('');
+  setCat(catState());
+}
+
+function renderGoalSheet() {
+  $('goal-grid').innerHTML = GOAL_OPTIONS.map(m =>
+    `<button type="button" class="minute-btn${m === bond.goal ? ' selected' : ''}" data-goal="${m}">${m}分</button>`
+  ).join('');
+}
+
+function openGoalSheet() {
+  bond.goalAsked = true;
+  saveBond();
+  renderGoalSheet();
+  $('goal-sheet').classList.add('show');
+}
+
+function closeGoalSheet() {
+  $('goal-sheet').classList.remove('show');
 }
 
 function setGauge(ratio, backward = false) {
@@ -377,7 +560,9 @@ function renderMorning() {
 }
 
 setInterval(() => {
-  if (!running) renderMorning();
+  if (running) return;
+  renderMorning();
+  renderBond();
 }, 30000);
 
 function start() {
@@ -397,6 +582,10 @@ function finish(minutes) {
   renderTimer();
   if (minutes < 1) return;
 
+  applyBondPenalty();
+  const mood = bondMood();
+  const wasAway = mood === 'away';
+  const bondRate = mood === 'normal' ? BOND_STAGES[stageIndex(catBondDays())].rate : 10;
   const sessions = load(KEYS.sessions, []);
   const session = {
     id: Date.now(),
@@ -405,7 +594,8 @@ function finish(minutes) {
     tagId: record.tagId,
     tagName: record.tagName,
     minutes,
-    coins: record.morning ? minutes * 2 : minutes,
+    coins: Math.floor(minutes * (record.morning ? 2 : 1) * bondRate / 10),
+    bondRate,
     morning: !!record.morning,
     understanding: null,
     memo: ''
@@ -414,13 +604,22 @@ function finish(minutes) {
   save(KEYS.sessions, sessions);
   coins += session.coins;
   save(KEYS.coins, coins);
-  const rewards = grantMorningRewards();
+  const notes = grantMorningRewards().map(item => `${item.name} を手に入れました`);
+  const catName = equippedItem('cat').name;
+  if (isAdmin) bond.devLastStudy = null;
+  updateLastStudyDate();
+  if (wasAway) {
+    bond.returnDate = dateStr(Date.now());
+    saveBond();
+    notes.push(`${catName}が帰ってきました`);
+  }
+  if (creditBond()) notes.push(`${catName}のなつき度 +1日`);
   renderCoins();
   renderStore();
-  updateLastStudyDate();
   renderLogs();
+  renderBond();
   renderTimer();
-  openDone(session, rewards);
+  openDone(session, notes);
 }
 
 startBtn.addEventListener('click', async () => {
@@ -451,6 +650,7 @@ document.addEventListener('contextmenu', event => {
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
+  renderBond();
   if (running) tick();
   else renderTimer();
 });
@@ -459,7 +659,10 @@ let doneSessionId = null;
 let doneUnderstanding = null;
 let doneInitial = { understanding: null, memo: '' };
 
-function openDone(session, rewards = [], editing = false) {
+let doneFromFinish = false;
+
+function openDone(session, notes = [], editing = false) {
+  doneFromFinish = !editing;
   doneSessionId = session.id;
   doneUnderstanding = editing ? session.understanding ?? null : null;
   doneMemo.value = editing ? session.memo ?? '' : '';
@@ -471,8 +674,10 @@ function openDone(session, rewards = [], editing = false) {
   $('done-coins-row').hidden = editing;
   $('done-coins').textContent = `+${session.coins ?? session.minutes}`;
   $('done-bonus').hidden = !session.morning;
-  $('done-unlock').hidden = rewards.length === 0;
-  $('done-unlock').textContent = rewards.map(item => `${item.name} を手に入れました`).join('\n');
+  $('done-bond-bonus').hidden = !(session.bondRate > 10);
+  $('done-bond-bonus').textContent = `なつき度 ${formatRate(session.bondRate || 10)}`;
+  $('done-unlock').hidden = notes.length === 0;
+  $('done-unlock').textContent = notes.join('\n');
   const tag = sessionTag(session);
   $('done-tag').style.setProperty('--tag', tag.color);
   $('done-tag-name').textContent = tag.name;
@@ -490,6 +695,8 @@ function editSession(id) {
 function closeDone() {
   doneModal.classList.remove('show');
   doneSessionId = null;
+  if (doneFromFinish && !bond.goalAsked) openGoalSheet();
+  doneFromFinish = false;
 }
 
 doneModal.addEventListener('click', async event => {
@@ -534,6 +741,34 @@ function closeDrawer() {
 $('btn-menu').addEventListener('click', openDrawer);
 
 $('home-coin').addEventListener('click', () => $('page-store').classList.add('show'));
+
+$('home-bond').addEventListener('click', () => {
+  renderBond();
+  $('page-bond').classList.add('show');
+  if (!bond.goalAsked) openGoalSheet();
+});
+
+$('bond-today').addEventListener('click', openGoalSheet);
+
+$('goal-grid').addEventListener('click', event => {
+  const btn = event.target.closest('[data-goal]');
+  if (!btn) return;
+  bond.goal = Number(btn.dataset.goal);
+  saveBond();
+  closeGoalSheet();
+  if (creditBond()) showToast(`${equippedItem('cat').name}のなつき度 +1日`);
+  renderBond();
+});
+
+$('goal-sheet').addEventListener('click', event => {
+  if (event.target === $('goal-sheet')) closeGoalSheet();
+});
+
+catRing.addEventListener('click', event => {
+  const rect = catRing.getBoundingClientRect();
+  const distance = Math.hypot(event.clientX - (rect.left + rect.width / 2), event.clientY - (rect.top + rect.height / 2)) / rect.width;
+  if (distance < 0.38) speak();
+});
 
 drawer.addEventListener('click', event => {
   const item = event.target.closest('.menu-item');
@@ -726,6 +961,7 @@ logList.addEventListener('click', async event => {
   save(KEYS.sessions, load(KEYS.sessions, []).filter(s => s.id !== id));
   updateLastStudyDate();
   renderLogs();
+  renderBond();
   renderTimer();
 });
 
@@ -1030,8 +1266,36 @@ $('dev-unlock').addEventListener('click', () => {
   refreshShopState();
 });
 
+$('dev-last-study').addEventListener('click', event => {
+  const btn = event.target.closest('[data-shift]');
+  if (!btn) return;
+  const shift = Number(btn.dataset.shift);
+  bond.devLastStudy = shift ? dateStr(Date.now() - shift * 86400000) : null;
+  saveBond();
+  renderBond();
+  showToast(shift ? `最後に勉強した日を${shift}日前にしました` : '最後に勉強した日を元に戻しました');
+});
+
+$('dev-bond-apply').addEventListener('click', () => {
+  const days = Math.max(Math.floor(Number($('dev-bond-days').value)), 0);
+  if (Number.isNaN(days)) return;
+  bond.days[equippedItem('cat').id] = days;
+  saveBond();
+  $('dev-bond-days').value = '';
+  renderBond();
+  showToast(`なつき日数を${days}日にしました`);
+});
+
+$('dev-goal-reset').addEventListener('click', () => {
+  bond.goalAsked = false;
+  saveBond();
+  showToast('目標の案内をもう一度出します');
+});
+
 $('dev-off').addEventListener('click', () => {
   isAdmin = false;
+  bond.devLastStudy = null;
+  saveBond();
   save(KEYS.admin, isAdmin);
   rollbackLockedItems();
   refreshShopState();
