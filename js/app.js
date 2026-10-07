@@ -21,10 +21,10 @@ const MORNING_END = 10;
 const SHOP = {
   cat: [
     { id: 'cat-noir', name: 'ノワール', price: 0, images: { idle: 'images/cat-sleep.jpg', running: 'images/cat-back.jpg', done: 'images/cat-sit.jpg' } },
-    { id: 'cat-luna', name: 'ルナ', price: 3000, images: { idle: 'images/cat-white-sleep.jpg', running: 'images/cat-white-back.jpg', done: 'images/cat-white-sit.jpg' } },
-    { id: 'cat-leo', name: 'レオ', price: 3000, images: { idle: 'images/cat-bengal-sleep.jpg', running: 'images/cat-bengal-back.jpg', done: 'images/cat-bengal-sit.jpg' } },
-    { id: 'cat-mike', name: 'ミケ', price: 3000, images: { idle: 'images/cat-calico-sleep.jpg', running: 'images/cat-calico-back.jpg', done: 'images/cat-calico-sit.jpg' } },
-    { id: 'cat-moka', name: 'モカ', price: 3000, images: { idle: 'images/cat-scottish-sleep.jpg', running: 'images/cat-scottish-back.jpg', done: 'images/cat-scottish-sit.jpg' } }
+    { id: 'cat-luna', name: 'ルナ', price: 1000, images: { idle: 'images/cat-white-sleep.jpg', running: 'images/cat-white-back.jpg', done: 'images/cat-white-sit.jpg' } },
+    { id: 'cat-mike', name: 'ミケ', price: 2000, images: { idle: 'images/cat-calico-sleep.jpg', running: 'images/cat-calico-back.jpg', done: 'images/cat-calico-sit.jpg' } },
+    { id: 'cat-moka', name: 'モカ', price: 3000, images: { idle: 'images/cat-scottish-sleep.jpg', running: 'images/cat-scottish-back.jpg', done: 'images/cat-scottish-sit.jpg' } },
+    { id: 'cat-leo', name: 'レオ', price: 4000, images: { idle: 'images/cat-bengal-sleep.jpg', running: 'images/cat-bengal-back.jpg', done: 'images/cat-bengal-sit.jpg' } }
   ],
   gauge: [
     { id: 'gauge-wakaba', name: '若葉', price: 0, color: '#6FA88C' },
@@ -429,6 +429,19 @@ startBtn.addEventListener('click', async () => {
     : '1分未満のため記録されません。おわりますか？';
   const ok = await showConfirm(message, 'おわる');
   if (ok && running) finish(minutes);
+});
+
+let lastTouchEnd = 0;
+document.addEventListener('touchend', event => {
+  const now = Date.now();
+  if (now - lastTouchEnd < 350 && !event.target.closest('button, input, textarea, select, a, label, .cat-ring')) event.preventDefault();
+  lastTouchEnd = now;
+}, { passive: false });
+
+document.addEventListener('dblclick', event => event.preventDefault());
+
+document.addEventListener('contextmenu', event => {
+  if (event.target.tagName === 'IMG') event.preventDefault();
 });
 
 document.addEventListener('visibilitychange', () => {
