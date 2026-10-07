@@ -16,7 +16,7 @@ const MIN_MINUTES = 10;
 const MAX_MINUTES = 120;
 const DEV_CODE = 'matatabi';
 const UPDATED_FLAG = 'studyCatJustUpdated';
-const MORNING_START = 6;
+const MORNING_START = 4;
 const MORNING_END = 10;
 const BOND_STAGES = [
   { name: 'はじめまして', days: 0, voice: '…', rate: 10 },
@@ -30,19 +30,21 @@ const GOAL_OPTIONS = [10, 15, 30, 60, 90, 120];
 const SULK_DAYS = 2;
 const AWAY_DAYS = 4;
 const SKILL_STAGE = 2;
-const NIGHT_HOUR = 18;
+const NIGHT_START = 18;
+const NIGHT_END = 3;
+const TREAT_PRICE = 100;
 const STAMINA_MINUTES = 60;
 const HEART_PATH = 'M12 20.5s-7.5-4.6-7.5-10.2C4.5 7.4 6.6 5.5 9 5.5c1.4 0 2.4.7 3 1.6.6-.9 1.6-1.6 3-1.6 2.4 0 4.5 1.9 4.5 4.8 0 5.6-7.5 10.2-7.5 10.2z';
 
 const SHOP = {
   cat: [
-    { id: 'cat-noir', name: 'ノワール', price: 0, skill: { id: 'night', name: '夜型', text: '18時以降に始めた勉強でコイン ×1.5' }, images: { idle: 'images/cat-sleep.jpg', running: 'images/cat-back.jpg', done: 'images/cat-sit.jpg' } },
-    { id: 'cat-luna', name: 'ルナ', price: 600, skill: { id: 'morning', name: '朝型', text: '朝活ボーナスが ×1.5 から ×2.5 に' }, images: { idle: 'images/cat-white-sleep.jpg', running: 'images/cat-white-back.jpg', done: 'images/cat-white-sit.jpg' } },
-    { id: 'cat-mike', name: 'ミケ', price: 1000, skill: { id: 'friendly', name: '人なつっこい', text: '目標を達成した日、きずな +2日' }, images: { idle: 'images/cat-calico-sleep.jpg', running: 'images/cat-calico-back.jpg', done: 'images/cat-calico-sit.jpg' } },
-    { id: 'cat-moka', name: 'モカ', price: 2000, skill: { id: 'calm', name: 'のんびり屋', text: 'すねるまで4日、家出まで6日' }, images: { idle: 'images/cat-scottish-sleep.jpg', running: 'images/cat-scottish-back.jpg', done: 'images/cat-scottish-sit.jpg' } },
-    { id: 'cat-leo', name: 'レオ', price: 3000, skill: { id: 'stamina', name: '体力自慢', text: '1回60分以上の勉強でコイン ×1.5' }, images: { idle: 'images/cat-bengal-sleep.jpg', running: 'images/cat-bengal-back.jpg', done: 'images/cat-bengal-sit.jpg' } },
-    { id: 'cat-noel', name: 'ノエル', limitedMonth: 12, limitedGoal: 7, skill: { id: 'season', season: 'winter', boost: [1224, 103], name: '冬生まれ', text: '12〜2月に始めた勉強でコイン ×1.5（12/24〜1/3は ×2）' }, images: { idle: 'images/cat-siamese-sleep.jpg', running: 'images/cat-siamese-back.jpg', done: 'images/cat-siamese-sit.jpg' } },
-    { id: 'cat-fleur', name: 'フルール', limitedMonth: 4, limitedGoal: 7, skill: { id: 'season', season: 'spring', boost: [401, 407], name: '春生まれ', text: '3〜5月に始めた勉強でコイン ×1.5（4/1〜4/7は ×2）' }, images: { idle: 'images/cat-munchkin-sleep.jpg', running: 'images/cat-munchkin-back.jpg', done: 'images/cat-munchkin-sit.jpg' } }
+    { id: 'cat-noir', treat: 'かつおぶし', name: 'ノワール', price: 0, skill: { id: 'night', name: '夜型', text: '18時〜翌3時の勉強でコイン ×1.5' }, images: { idle: 'images/cat-sleep.jpg', running: 'images/cat-back.jpg', done: 'images/cat-sit.jpg' } },
+    { id: 'cat-luna', treat: 'ささみ', name: 'ルナ', price: 600, skill: { id: 'morning', name: '朝型', text: '朝活ボーナスが ×1.5 から ×2.5 に' }, images: { idle: 'images/cat-white-sleep.jpg', running: 'images/cat-white-back.jpg', done: 'images/cat-white-sit.jpg' } },
+    { id: 'cat-mike', treat: 'にぼし', name: 'ミケ', price: 1000, skill: { id: 'friendly', name: '人なつっこい', text: '目標を達成した日、きずな +2日' }, images: { idle: 'images/cat-calico-sleep.jpg', running: 'images/cat-calico-back.jpg', done: 'images/cat-calico-sit.jpg' } },
+    { id: 'cat-moka', treat: 'ねこミルク', name: 'モカ', price: 2000, skill: { id: 'calm', name: 'のんびり屋', text: 'すねるまで4日、家出まで6日' }, images: { idle: 'images/cat-scottish-sleep.jpg', running: 'images/cat-scottish-back.jpg', done: 'images/cat-scottish-sit.jpg' } },
+    { id: 'cat-leo', treat: 'まぐろ', name: 'レオ', price: 3000, skill: { id: 'stamina', name: '体力自慢', text: '1回60分以上の勉強でコイン ×1.5' }, images: { idle: 'images/cat-bengal-sleep.jpg', running: 'images/cat-bengal-back.jpg', done: 'images/cat-bengal-sit.jpg' } },
+    { id: 'cat-noel', treat: 'ローストチキン', name: 'ノエル', limitedMonth: 12, limitedGoal: 7, skill: { id: 'season', season: 'winter', boost: [1224, 103], name: '冬生まれ', text: '12〜2月に始めた勉強でコイン ×1.5（12/24〜1/3は ×2）' }, images: { idle: 'images/cat-siamese-sleep.jpg', running: 'images/cat-siamese-back.jpg', done: 'images/cat-siamese-sit.jpg' } },
+    { id: 'cat-fleur', treat: 'さくらえび', name: 'フルール', limitedMonth: 4, limitedGoal: 7, skill: { id: 'season', season: 'spring', boost: [401, 407], name: '春生まれ', text: '3〜5月に始めた勉強でコイン ×1.5（4/1〜4/7は ×2）' }, images: { idle: 'images/cat-munchkin-sleep.jpg', running: 'images/cat-munchkin-back.jpg', done: 'images/cat-munchkin-sit.jpg' } }
   ],
   gauge: [
     { id: 'gauge-wakaba', name: '若葉', price: 0, color: '#6FA88C' },
@@ -125,7 +127,7 @@ let running = load(KEYS.running, null);
 let coins = load(KEYS.coins, 0);
 let shop = { owned: [], ...DEFAULT_EQUIP, ...load(KEYS.shop, {}) };
 let isAdmin = load(KEYS.admin, false);
-let bond = { days: {}, goal: 30, goalAsked: false, creditDate: null, penaltyBase: null, penaltyApplied: 0, returnDate: null, devLastStudy: null, ...load(KEYS.bond, {}) };
+let bond = { days: {}, goal: 30, goalAsked: false, creditDate: null, penaltyBase: null, penaltyApplied: 0, returnDate: null, devLastStudy: null, mood: 'normal', awayBase: null, fixedBase: null, treatDate: null, ...load(KEYS.bond, {}) };
 let tickTimer = null;
 let lastStudyDate = null;
 
@@ -367,15 +369,32 @@ function moodDays() {
 }
 
 function bondMood() {
-  const missed = missedDays();
-  const limits = moodDays();
-  if (missed >= limits.away) return 'away';
-  if (missed >= limits.sulk) return 'sulk';
-  return 'normal';
+  return bond.mood;
 }
 
 function activeSkill(id) {
-  return hasSkill(id) && bondMood() === 'normal';
+  return hasSkill(id);
+}
+
+function updateMood() {
+  const missed = missedDays();
+  const limits = moodDays();
+  const base = bondLastStudy();
+  if (missed >= limits.away && bond.mood !== 'away') {
+    bond.mood = 'away';
+    bond.awayBase = base;
+  } else if (missed >= limits.sulk && bond.mood === 'normal' && bond.fixedBase !== base) {
+    bond.mood = 'sulk';
+  }
+}
+
+function nightMinutes(startAt, minutes) {
+  let count = 0;
+  for (let i = 0; i < minutes; i++) {
+    const hour = new Date(startAt + i * 60000 + 30000).getHours();
+    if (hour >= NIGHT_START || hour < NIGHT_END) count++;
+  }
+  return count;
 }
 
 function morningRate() {
@@ -392,8 +411,11 @@ function addBondDays(delta) {
 }
 
 function applyBondPenalty() {
-  const target = Math.max(missedDays() - moodDays().away + 1, 0);
+  updateMood();
   const base = bondLastStudy();
+  const missed = missedDays();
+  const target = bond.mood !== 'away' ? 0
+    : base === bond.awayBase ? Math.max(missed - moodDays().away + 1, 0) : missed;
   if (bond.penaltyBase !== base) {
     bond.penaltyBase = base;
     bond.penaltyApplied = 0;
@@ -412,12 +434,31 @@ function todayMinutes() {
 
 function creditBond(extraMinutes = 0) {
   const today = dateStr(Date.now());
-  if (bond.creditDate === today || todayMinutes() + extraMinutes < bond.goal) return 0;
-  const gain = activeSkill('friendly') ? 2 : 1;
-  addBondDays(gain);
+  if (bond.creditDate === today || todayMinutes() + extraMinutes < bond.goal) return { gain: 0, fixed: null };
   bond.creditDate = today;
+  const fixed = bond.mood !== 'normal' ? bond.mood : null;
+  let gain = 0;
+  if (fixed) {
+    bond.mood = 'normal';
+    if (fixed === 'away') bond.returnDate = today;
+  } else {
+    gain = activeSkill('friendly') ? 2 : 1;
+    addBondDays(gain);
+  }
   saveBond();
-  return gain;
+  return { gain, fixed };
+}
+
+function fixedNote(fixed, name) {
+  return fixed === 'away' ? `${name}が帰ってきました` : `${name}の機嫌が直りました`;
+}
+
+function stageNotes(beforeIndex, beforeReady, skill) {
+  const notes = [];
+  const index = stageIndex(catBondDays());
+  if (index > beforeIndex) notes.push(`${BOND_STAGES[index].name}になりました！ コイン ${formatRate(BOND_STAGES[index].rate)}`);
+  if (!beforeReady && skillReady()) notes.push(`スキル「${skill.name}」が使えるようになりました`);
+  return notes;
 }
 
 function stageIndex(days) {
@@ -486,10 +527,10 @@ function renderBond() {
   const skillLeft = BOND_STAGES[SKILL_STAGE].days - days;
   $('bond-skill-state').textContent = skillLeft > 0
     ? `${BOND_STAGES[SKILL_STAGE].name}から使えます（あと${skillLeft}日）`
-    : mood === 'normal' ? '使えます' : '機嫌が直ると使えます';
-  $('bond-skill').classList.toggle('ready', skillLeft <= 0 && mood === 'normal');
+    : '使えます';
+  $('bond-skill').classList.toggle('ready', skillLeft <= 0);
   $('bond-me-mood').hidden = mood === 'normal';
-  $('bond-me-mood').textContent = mood === 'away' ? '家出中です。勉強すると帰ってきます' : 'すねています。勉強すると機嫌が直ります';
+  $('bond-me-mood').textContent = mood === 'away' ? '家出中です。目標を達成すると帰ってきます' : 'すねています。目標の達成か、おやつで機嫌が直ります';
 
   const next = BOND_STAGES[index + 1];
   if (next) {
@@ -505,9 +546,18 @@ function renderBond() {
 
   const total = todayMinutes();
   $('bond-today-value').textContent = `${Math.min(total, bond.goal)} / ${bond.goal}分 ›`;
-  $('bond-today-note').textContent = bond.creditDate === dateStr(Date.now())
-    ? '今日は +1日 しました'
-    : `あと${Math.max(bond.goal - total, 0)}分で +1日`;
+  const left = Math.max(bond.goal - total, 0);
+  $('bond-today-note').textContent = bond.creditDate === dateStr(Date.now()) ? '今日の目標は達成しました'
+    : mood === 'away' ? `あと${left}分で帰ってきます`
+    : mood === 'sulk' ? `あと${left}分で機嫌が直ります`
+    : `あと${left}分で +1日`;
+
+  const treatDone = bond.treatDate === dateStr(Date.now());
+  $('bond-treat-name').textContent = `${cat.treat}をあげる`;
+  $('bond-treat-note').textContent = mood === 'away' ? '家出中はあげられません'
+    : treatDone ? '今日はもうあげました'
+    : `${TREAT_PRICE}コイン・きずな +1日${mood === 'sulk' ? '・機嫌が直る' : ''}`;
+  $('bond-treat').classList.toggle('done', mood === 'away' || treatDone);
 
   $('bond-stages').innerHTML = BOND_STAGES.map((stage, i) =>
     `<div class="bond-stage${i === index ? ' current' : ''}"><span class="bond-hearts">${heartsHtml(i)}</span><span class="bond-stage-name">${stage.name}</span><span class="bond-stage-days">${stage.days}日</span><span class="bond-stage-rate">${formatRate(stage.rate)}</span></div>`
@@ -663,20 +713,23 @@ function finish(minutes) {
   if (minutes < 1) return;
 
   applyBondPenalty();
-  const mood = bondMood();
-  const wasAway = mood === 'away';
   const cat = equippedItem('cat');
   const beforeIndex = stageIndex(catBondDays());
   const beforeReady = skillReady();
-  const gain = creditBond(dateStr(record.startAt) === dateStr(Date.now()) ? minutes : 0);
+  const { gain, fixed } = creditBond(dateStr(record.startAt) === dateStr(Date.now()) ? minutes : 0);
   const index = stageIndex(catBondDays());
-  const bondRate = mood === 'normal' ? BOND_STAGES[index].rate : 10;
+  const bondRate = BOND_STAGES[index].rate;
   const morningTenths = record.morning ? record.morningTenths || 15 : 10;
   const skill = cat.skill;
   let skillRate = 10;
-  if ((activeSkill('night') && new Date(record.startAt).getHours() >= NIGHT_HOUR)
-    || (activeSkill('stamina') && minutes >= STAMINA_MINUTES)) skillRate = 15;
+  let skillMinutes = minutes;
+  if (activeSkill('night')) {
+    skillMinutes = nightMinutes(record.startAt, minutes);
+    if (skillMinutes) skillRate = 15;
+  }
+  if (activeSkill('stamina') && minutes >= STAMINA_MINUTES) skillRate = 15;
   if (activeSkill('season') && inSeason(skill.season, record.startAt)) skillRate = inBoost(skill.boost, record.startAt) ? 20 : 15;
+  const weighted = (minutes - skillMinutes) * 10 + skillMinutes * skillRate;
   const sessions = load(KEYS.sessions, []);
   const session = {
     id: Date.now(),
@@ -685,10 +738,10 @@ function finish(minutes) {
     tagId: record.tagId,
     tagName: record.tagName,
     minutes,
-    coins: Math.floor(minutes * morningTenths * bondRate * skillRate / 1000),
+    coins: Math.floor(weighted * morningTenths * bondRate / 1000),
     bondRate,
     morningTenths,
-    skillLabel: skillRate > 10 ? `${skill.name} ${skillRate % 10 ? formatRate(skillRate) : `×${skillRate / 10}`}` : null,
+    skillLabel: skillRate > 10 ? `${skill.name} ${skillRate % 10 ? formatRate(skillRate) : `×${skillRate / 10}`}${skillMinutes < minutes ? `（${skillMinutes}分）` : ''}` : null,
     morning: !!record.morning,
     understanding: null,
     memo: ''
@@ -700,14 +753,9 @@ function finish(minutes) {
   const notes = grantRewards().map(item => item.images ? `${item.name}がやってきました` : `${item.name} を手に入れました`);
   if (isAdmin) bond.devLastStudy = null;
   updateLastStudyDate();
-  if (wasAway) {
-    bond.returnDate = dateStr(Date.now());
-    saveBond();
-    notes.push(`${cat.name}が帰ってきました`);
-  }
+  if (fixed) notes.push(fixedNote(fixed, cat.name));
   if (gain) notes.push(`${cat.name}のきずな +${gain}日`);
-  if (index > beforeIndex) notes.push(`${BOND_STAGES[index].name}になりました！ コイン ${formatRate(BOND_STAGES[index].rate)}`);
-  if (!beforeReady && skillReady()) notes.push(`スキル「${skill.name}」が使えるようになりました`);
+  notes.push(...stageNotes(beforeIndex, beforeReady, skill));
   renderCoins();
   renderStore();
   renderLogs();
@@ -898,9 +946,56 @@ $('goal-grid').addEventListener('click', event => {
   bond.goal = Number(btn.dataset.goal);
   saveBond();
   closeGoalSheet();
-  const gain = creditBond();
-  if (gain) showToast(`${equippedItem('cat').name}のきずな +${gain}日`);
+  const { gain, fixed } = creditBond();
+  const name = equippedItem('cat').name;
+  if (fixed) showToast(fixedNote(fixed, name));
+  else if (gain) showToast(`${name}のきずな +${gain}日`);
   renderBond();
+});
+
+let treatVoiceTimer = null;
+
+$('bond-treat').addEventListener('click', async () => {
+  const cat = equippedItem('cat');
+  if (bondMood() === 'away') {
+    showToast('家出中はおやつをあげられません');
+    return;
+  }
+  if (bond.treatDate === dateStr(Date.now())) {
+    showToast('今日はもうおやつをあげました');
+    return;
+  }
+  if (coins < TREAT_PRICE) {
+    showToast('コインが足りません');
+    return;
+  }
+  const ok = await showConfirm(`${cat.name}に${cat.treat}をあげますか？（${TREAT_PRICE}コイン）`, 'あげる', 'primary');
+  if (!ok || coins < TREAT_PRICE || bond.treatDate === dateStr(Date.now())) return;
+  const beforeIndex = stageIndex(catBondDays());
+  const beforeReady = skillReady();
+  coins -= TREAT_PRICE;
+  save(KEYS.coins, coins);
+  addBondDays(1);
+  bond.treatDate = dateStr(Date.now());
+  const wasSulk = bond.mood === 'sulk';
+  if (wasSulk) {
+    bond.mood = 'normal';
+    bond.fixedBase = bondLastStudy();
+  }
+  saveBond();
+  const notes = [`${cat.name}に${cat.treat}をあげました。きずな +1日`];
+  if (wasSulk) notes.push('機嫌が直りました');
+  notes.push(...stageNotes(beforeIndex, beforeReady, cat.skill));
+  showToast(notes.join('\n'));
+  renderCoins();
+  renderBond();
+  bubbleVoice = 'おいしい！';
+  renderBubble();
+  clearTimeout(treatVoiceTimer);
+  treatVoiceTimer = setTimeout(() => {
+    bubbleVoice = null;
+    renderBubble();
+  }, 2500);
 });
 
 $('goal-sheet').addEventListener('click', event => {
@@ -1426,6 +1521,7 @@ $('dev-last-study').addEventListener('click', event => {
   if (!btn) return;
   const shift = Number(btn.dataset.shift);
   bond.devLastStudy = shift ? dateStr(Date.now() - shift * 86400000) : null;
+  if (!shift) bond.mood = 'normal';
   saveBond();
   renderBond();
   showToast(shift ? `最後に勉強した日を${shift}日前にしました` : '最後に勉強した日を元に戻しました');
@@ -1450,6 +1546,7 @@ $('dev-goal-reset').addEventListener('click', () => {
 $('dev-off').addEventListener('click', () => {
   isAdmin = false;
   bond.devLastStudy = null;
+  bond.mood = 'normal';
   saveBond();
   save(KEYS.admin, isAdmin);
   rollbackLockedItems();

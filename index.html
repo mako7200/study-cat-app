@@ -215,14 +215,19 @@
         <b id="bond-today-value"></b>
         <small id="bond-today-note"></small>
       </button>
+      <button type="button" class="bond-treat" id="bond-treat">
+        <span class="bond-treat-name" id="bond-treat-name"></span>
+        <small id="bond-treat-note"></small>
+      </button>
       <div class="section-title">段階</div>
       <div class="bond-stages" id="bond-stages"></div>
       <div class="section-title">きずなの深め方</div>
       <ul class="bond-how">
         <li>目標を達成した日に <b>+1日</b>（1日1回まで）</li>
-        <li>2日勉強しないと<b>すねる</b>、4日で<b>家出</b>（家出中は毎日 −1日）</li>
-        <li>勉強すれば、すぐ帰ってくる</li>
-        <li>段階が上がると、もらえる<b>コインが増える</b>（すねている時と家出中は増えない）</li>
+        <li>2日勉強しないと<b>すねる</b>、4日で<b>家出</b>（家出中は、勉強しなかった日ごとに −1日）</li>
+        <li>すねる・家出は、<b>目標を達成</b>すると直る（その日の +1日 はなし）</li>
+        <li><b>おやつ</b>でも +1日（1日1回）。すねている時は機嫌も直る</li>
+        <li>段階が上がると、もらえる<b>コインが増える</b></li>
         <li>なかよしになると、猫ごとの<b>スキル</b>が使える</li>
       </ul>
       <p class="bond-foot">きずなは猫ごとに別々です。1日の目標は、上の「今日の目標」をタップして変えられます。</p>
@@ -278,7 +283,7 @@
         </button>
         <div class="accordion-body" hidden>
           <div class="app-info-row">
-            <span class="app-version">Version 0.16.0</span>
+            <span class="app-version">Version 0.17.0</span>
             <button type="button" class="btn-small" id="btn-fetch-latest">最新版を取得</button>
           </div>
         </div>
