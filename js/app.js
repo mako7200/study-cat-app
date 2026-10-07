@@ -38,7 +38,7 @@ const SHOP = {
   cat: [
     { id: 'cat-noir', name: 'ノワール', price: 0, skill: { id: 'night', name: '夜型', text: '18時以降に始めた勉強でコイン ×1.5' }, images: { idle: 'images/cat-sleep.jpg', running: 'images/cat-back.jpg', done: 'images/cat-sit.jpg' } },
     { id: 'cat-luna', name: 'ルナ', price: 600, skill: { id: 'morning', name: '朝型', text: '朝活ボーナスが ×1.5 から ×2.5 に' }, images: { idle: 'images/cat-white-sleep.jpg', running: 'images/cat-white-back.jpg', done: 'images/cat-white-sit.jpg' } },
-    { id: 'cat-mike', name: 'ミケ', price: 1000, skill: { id: 'friendly', name: '人なつっこい', text: '目標を達成した日、なつき度 +2日' }, images: { idle: 'images/cat-calico-sleep.jpg', running: 'images/cat-calico-back.jpg', done: 'images/cat-calico-sit.jpg' } },
+    { id: 'cat-mike', name: 'ミケ', price: 1000, skill: { id: 'friendly', name: '人なつっこい', text: '目標を達成した日、きずな +2日' }, images: { idle: 'images/cat-calico-sleep.jpg', running: 'images/cat-calico-back.jpg', done: 'images/cat-calico-sit.jpg' } },
     { id: 'cat-moka', name: 'モカ', price: 2000, skill: { id: 'calm', name: 'のんびり屋', text: 'すねるまで4日、家出まで6日' }, images: { idle: 'images/cat-scottish-sleep.jpg', running: 'images/cat-scottish-back.jpg', done: 'images/cat-scottish-sit.jpg' } },
     { id: 'cat-leo', name: 'レオ', price: 3000, skill: { id: 'stamina', name: '体力自慢', text: '1回60分以上の勉強でコイン ×1.5' }, images: { idle: 'images/cat-bengal-sleep.jpg', running: 'images/cat-bengal-back.jpg', done: 'images/cat-bengal-sit.jpg' } }
   ],
@@ -370,9 +370,9 @@ function todayMinutes() {
   return load(KEYS.sessions, []).filter(s => s.date === today).reduce((sum, s) => sum + s.minutes, 0);
 }
 
-function creditBond() {
+function creditBond(extraMinutes = 0) {
   const today = dateStr(Date.now());
-  if (bond.creditDate === today || todayMinutes() < bond.goal) return 0;
+  if (bond.creditDate === today || todayMinutes() + extraMinutes < bond.goal) return 0;
   const gain = activeSkill('friendly') ? 2 : 1;
   addBondDays(gain);
   bond.creditDate = today;
@@ -625,9 +625,14 @@ function finish(minutes) {
   applyBondPenalty();
   const mood = bondMood();
   const wasAway = mood === 'away';
-  const bondRate = mood === 'normal' ? BOND_STAGES[stageIndex(catBondDays())].rate : 10;
+  const cat = equippedItem('cat');
+  const beforeIndex = stageIndex(catBondDays());
+  const beforeReady = skillReady();
+  const gain = creditBond(dateStr(record.startAt) === dateStr(Date.now()) ? minutes : 0);
+  const index = stageIndex(catBondDays());
+  const bondRate = mood === 'normal' ? BOND_STAGES[index].rate : 10;
   const morningTenths = record.morning ? record.morningTenths || 15 : 10;
-  const skill = equippedItem('cat').skill;
+  const skill = cat.skill;
   const skillHit = (activeSkill('night') && new Date(record.startAt).getHours() >= NIGHT_HOUR)
     || (activeSkill('stamina') && minutes >= STAMINA_MINUTES);
   const skillRate = skillHit ? 15 : 10;
@@ -652,16 +657,16 @@ function finish(minutes) {
   coins += session.coins;
   save(KEYS.coins, coins);
   const notes = grantMorningRewards().map(item => `${item.name} を手に入れました`);
-  const catName = equippedItem('cat').name;
   if (isAdmin) bond.devLastStudy = null;
   updateLastStudyDate();
   if (wasAway) {
     bond.returnDate = dateStr(Date.now());
     saveBond();
-    notes.push(`${catName}が帰ってきました`);
+    notes.push(`${cat.name}が帰ってきました`);
   }
-  const gain = creditBond();
-  if (gain) notes.push(`${catName}のなつき度 +${gain}日`);
+  if (gain) notes.push(`${cat.name}のきずな +${gain}日`);
+  if (index > beforeIndex) notes.push(`${BOND_STAGES[index].name}になりました！ コイン ${formatRate(BOND_STAGES[index].rate)}`);
+  if (!beforeReady && skillReady()) notes.push(`スキル「${skill.name}」が使えるようになりました`);
   renderCoins();
   renderStore();
   renderLogs();
@@ -726,7 +731,7 @@ function openDone(session, notes = [], editing = false) {
   $('done-skill-bonus').hidden = !session.skillLabel;
   $('done-skill-bonus').textContent = session.skillLabel || '';
   $('done-bond-bonus').hidden = !(session.bondRate > 10);
-  $('done-bond-bonus').textContent = `なつき度 ${formatRate(session.bondRate || 10)}`;
+  $('done-bond-bonus').textContent = `きずな ${formatRate(session.bondRate || 10)}`;
   $('done-unlock').hidden = notes.length === 0;
   $('done-unlock').textContent = notes.join('\n');
   const tag = sessionTag(session);
@@ -853,7 +858,7 @@ $('goal-grid').addEventListener('click', event => {
   saveBond();
   closeGoalSheet();
   const gain = creditBond();
-  if (gain) showToast(`${equippedItem('cat').name}のなつき度 +${gain}日`);
+  if (gain) showToast(`${equippedItem('cat').name}のきずな +${gain}日`);
   renderBond();
 });
 
@@ -1376,7 +1381,7 @@ $('dev-bond-apply').addEventListener('click', () => {
   saveBond();
   $('dev-bond-days').value = '';
   renderBond();
-  showToast(`なつき日数を${days}日にしました`);
+  showToast(`きずなの日数を${days}日にしました`);
 });
 
 $('dev-goal-reset').addEventListener('click', () => {
