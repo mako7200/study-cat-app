@@ -457,11 +457,13 @@ document.addEventListener('visibilitychange', () => {
 
 let doneSessionId = null;
 let doneUnderstanding = null;
+let doneInitial = { understanding: null, memo: '' };
 
 function openDone(session, rewards = [], editing = false) {
   doneSessionId = session.id;
-  doneUnderstanding = editing ? session.understanding : null;
-  doneMemo.value = editing ? session.memo : '';
+  doneUnderstanding = editing ? session.understanding ?? null : null;
+  doneMemo.value = editing ? session.memo ?? '' : '';
+  doneInitial = { understanding: doneUnderstanding, memo: doneMemo.value };
   understandingSelect.querySelectorAll('.understanding-btn').forEach(b => {
     b.classList.toggle('selected', b.dataset.level === doneUnderstanding);
   });
@@ -489,6 +491,13 @@ function closeDone() {
   doneModal.classList.remove('show');
   doneSessionId = null;
 }
+
+doneModal.addEventListener('click', async event => {
+  if (event.target !== doneModal) return;
+  const changed = doneUnderstanding !== doneInitial.understanding || doneMemo.value.trim() !== doneInitial.memo.trim();
+  if (changed && !await showConfirm('変更を保存せずに閉じますか？', '破棄する', 'danger', '編集を続ける')) return;
+  closeDone();
+});
 
 understandingSelect.addEventListener('click', event => {
   const btn = event.target.closest('.understanding-btn');
@@ -1128,10 +1137,11 @@ $('btn-fetch-latest').addEventListener('click', () => {
 
 let confirmResolve = null;
 
-function showConfirm(message, okLabel, tone = 'danger') {
+function showConfirm(message, okLabel, tone = 'danger', cancelLabel = 'キャンセル') {
   const okBtn = $('confirm-modal-ok');
   $('confirm-modal-message').textContent = message;
   okBtn.textContent = okLabel;
+  $('confirm-modal-cancel').textContent = cancelLabel;
   okBtn.classList.toggle('modal-btn-danger', tone === 'danger');
   okBtn.classList.toggle('modal-btn-primary', tone === 'primary');
   confirmModal.classList.add('show');
