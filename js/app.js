@@ -396,6 +396,7 @@ function finish(minutes) {
   const sessions = load(KEYS.sessions, []);
   const session = {
     id: Date.now(),
+    startAt: record.startAt,
     date: dateStr(record.startAt),
     tagId: record.tagId,
     tagName: record.tagName,
@@ -815,7 +816,7 @@ function renderDaySheet() {
     const open = dayOpenTags.has(t.key);
     const records = t.sessions.map(s => `
       <button type="button" class="day-record" data-id="${s.id}">
-        <span class="day-record-top"><span>${formatClock(s.id)}</span><span>${s.minutes} min</span></span>
+        <span class="day-record-top"><span>${formatClock(s.startAt ?? s.id - s.minutes * 60000)}〜${formatClock(s.id)}</span><span>${s.minutes} min</span></span>
         ${s.understanding ? `<span class="log-item-understanding">${UNDERSTANDING_LABEL[s.understanding]}</span>` : ''}
         ${s.memo ? `<span class="log-item-memo">${escapeHtml(s.memo)}</span>` : ''}
       </button>`).join('');
