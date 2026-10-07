@@ -40,7 +40,8 @@ const SHOP = {
     { id: 'cat-luna', name: 'ルナ', price: 600, skill: { id: 'morning', name: '朝型', text: '朝活ボーナスが ×1.5 から ×2.5 に' }, images: { idle: 'images/cat-white-sleep.jpg', running: 'images/cat-white-back.jpg', done: 'images/cat-white-sit.jpg' } },
     { id: 'cat-mike', name: 'ミケ', price: 1000, skill: { id: 'friendly', name: '人なつっこい', text: '目標を達成した日、きずな +2日' }, images: { idle: 'images/cat-calico-sleep.jpg', running: 'images/cat-calico-back.jpg', done: 'images/cat-calico-sit.jpg' } },
     { id: 'cat-moka', name: 'モカ', price: 2000, skill: { id: 'calm', name: 'のんびり屋', text: 'すねるまで4日、家出まで6日' }, images: { idle: 'images/cat-scottish-sleep.jpg', running: 'images/cat-scottish-back.jpg', done: 'images/cat-scottish-sit.jpg' } },
-    { id: 'cat-leo', name: 'レオ', price: 3000, skill: { id: 'stamina', name: '体力自慢', text: '1回60分以上の勉強でコイン ×1.5' }, images: { idle: 'images/cat-bengal-sleep.jpg', running: 'images/cat-bengal-back.jpg', done: 'images/cat-bengal-sit.jpg' } }
+    { id: 'cat-leo', name: 'レオ', price: 3000, skill: { id: 'stamina', name: '体力自慢', text: '1回60分以上の勉強でコイン ×1.5' }, images: { idle: 'images/cat-bengal-sleep.jpg', running: 'images/cat-bengal-back.jpg', done: 'images/cat-bengal-sit.jpg' } },
+    { id: 'cat-noel', name: 'ノエル', decemberGoal: 7, skill: { id: 'winter', name: '冬生まれ', text: '12〜2月に始めた勉強でコイン ×1.5（12/24〜1/3は ×2）' }, images: { idle: 'images/cat-siamese-sleep.jpg', running: 'images/cat-siamese-back.jpg', done: 'images/cat-siamese-sit.jpg' } }
   ],
   gauge: [
     { id: 'gauge-wakaba', name: '若葉', price: 0, color: '#6FA88C' },
@@ -71,7 +72,10 @@ const SHOP = {
     { id: 'theme-matte', name: 'マットブラック', price: 500, bg: '#0d0d0d', texture: true },
     { id: 'theme-minato', name: '月夜の港', price: 1000, bg: '#0b1430', image: 'images/wall-minato.jpg', thumb: 'images/wall-minato-thumb.jpg' },
     { id: 'theme-kogen', name: '高原', price: 1000, bg: '#0f1d24', image: 'images/wall-kogen.jpg', thumb: 'images/wall-kogen-thumb.jpg' },
-    { id: 'theme-asa', name: '朝のひととき', morningGoal: 7, bg: '#14141c', image: 'images/wall-asa.jpg', thumb: 'images/wall-asa-thumb.jpg' }
+    { id: 'theme-asa', name: '朝のひととき', morningGoal: 7, bg: '#14141c', image: 'images/wall-asa.jpg', thumb: 'images/wall-asa-thumb.jpg' },
+    { id: 'theme-yukiyo', name: '雪夜', price: 300, season: 'winter', bg: '#1a2550', pattern: 'snow', gradient: 'linear-gradient(180deg, #2b4a7a 0%, #1a2550 70%, #141c40 100%)' },
+    { id: 'theme-seiya', name: '聖夜', price: 300, season: 'winter', bg: '#2a2a3a', pattern: 'lights', gradient: 'linear-gradient(180deg, #1f4a3a 0%, #2a2a3a 55%, #5a2230 100%)' },
+    { id: 'theme-yukiakari', name: '雪あかり', price: 300, season: 'winter', bg: '#4a5a96', pattern: 'snow', gradient: 'linear-gradient(180deg, #3a3a78 0%, #4a5a96 65%, #7a86b8 100%)' }
   ]
 };
 const DEFAULT_EQUIP = { cat: 'cat-noir', gauge: 'gauge-wakaba', knob: 'knob-circle', theme: 'theme-mayonaka' };
@@ -79,6 +83,10 @@ const STORE_SECTIONS = {
   cat: [['cat', null]],
   gauge: [['gauge', '色'], ['knob', 'つまみ']],
   theme: [['theme', null]]
+};
+const WALL_PATTERNS = {
+  snow: "url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22140%22%20height%3D%22140%22%3E%3Cg%20fill%3D%22%23fff%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2218%22%20r%3D%221.6%22%20opacity%3D%22.8%22%2F%3E%3Ccircle%20cx%3D%2258%22%20cy%3D%229%22%20r%3D%221.1%22%20opacity%3D%22.6%22%2F%3E%3Ccircle%20cx%3D%2296%22%20cy%3D%2230%22%20r%3D%222%22%20opacity%3D%22.7%22%2F%3E%3Ccircle%20cx%3D%22128%22%20cy%3D%2212%22%20r%3D%221.2%22%20opacity%3D%22.5%22%2F%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2262%22%20r%3D%221.3%22%20opacity%3D%22.6%22%2F%3E%3Ccircle%20cx%3D%2278%22%20cy%3D%2256%22%20r%3D%221.8%22%20opacity%3D%22.75%22%2F%3E%3Ccircle%20cx%3D%22118%22%20cy%3D%2274%22%20r%3D%221.1%22%20opacity%3D%22.55%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%22104%22%20r%3D%222%22%20opacity%3D%22.7%22%2F%3E%3Ccircle%20cx%3D%2260%22%20cy%3D%22118%22%20r%3D%221.2%22%20opacity%3D%22.5%22%2F%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22110%22%20r%3D%221.6%22%20opacity%3D%22.7%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E')",
+  lights: "url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22120%22%20height%3D%22120%22%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2220%22%20r%3D%221.8%22%20fill%3D%22%23FFD27A%22%20opacity%3D%22.8%22%2F%3E%3Ccircle%20cx%3D%2270%22%20cy%3D%2244%22%20r%3D%221.4%22%20fill%3D%22%23FF9A8A%22%20opacity%3D%22.7%22%2F%3E%3Ccircle%20cx%3D%22104%22%20cy%3D%2212%22%20r%3D%221.6%22%20fill%3D%22%23BFF0C8%22%20opacity%3D%22.7%22%2F%3E%3Ccircle%20cx%3D%2236%22%20cy%3D%2288%22%20r%3D%221.5%22%20fill%3D%22%23FFD27A%22%20opacity%3D%22.7%22%2F%3E%3Ccircle%20cx%3D%2296%22%20cy%3D%2296%22%20r%3D%221.8%22%20fill%3D%22%23FF9A8A%22%20opacity%3D%22.6%22%2F%3E%3C%2Fsvg%3E')"
 };
 const WALL_DIM = 'linear-gradient(rgba(8, 6, 26, 0.25), rgba(8, 6, 26, 0.45))';
 const PAW_SCALE = 0.78;
@@ -212,8 +220,31 @@ function morningCount() {
   return load(KEYS.sessions, []).filter(s => s.morning).length;
 }
 
-function grantMorningRewards() {
-  const earned = SHOP.theme.filter(item => item.morningGoal && !shop.owned.includes(item.id) && morningCount() >= item.morningGoal);
+function isWinter(ms = Date.now()) {
+  const month = new Date(ms).getMonth() + 1;
+  return month === 12 || month <= 2;
+}
+
+function isDecember(ms = Date.now()) {
+  return new Date(ms).getMonth() === 11;
+}
+
+function isHoliday(ms) {
+  const d = new Date(ms);
+  const month = d.getMonth() + 1;
+  return (month === 12 && d.getDate() >= 24) || (month === 1 && d.getDate() <= 3);
+}
+
+function decemberDays() {
+  const prefix = `${new Date().getFullYear()}-12-`;
+  return new Set(load(KEYS.sessions, []).map(s => s.date).filter(date => date.startsWith(prefix))).size;
+}
+
+function grantRewards() {
+  const earned = [
+    ...SHOP.theme.filter(item => item.morningGoal && morningCount() >= item.morningGoal),
+    ...SHOP.cat.filter(item => item.decemberGoal && isDecember() && decemberDays() >= item.decemberGoal)
+  ].filter(item => !shop.owned.includes(item.id));
   earned.forEach(item => shop.owned.push(item.id));
   if (earned.length) save(KEYS.shop, shop);
   return earned;
@@ -251,6 +282,7 @@ function applyGauge() {
 }
 
 function wallBackground(item) {
+  if (item.pattern) return `${WALL_PATTERNS[item.pattern]}, ${item.gradient}, ${item.bg}`;
   if (item.image) return `${WALL_DIM}, url(${item.image}) center / cover no-repeat, ${item.bg}`;
   if (item.gradient) return `${item.gradient}, ${item.bg}`;
   if (item.texture) return `${MATTE_TEXTURE}, ${item.bg}`;
@@ -633,9 +665,10 @@ function finish(minutes) {
   const bondRate = mood === 'normal' ? BOND_STAGES[index].rate : 10;
   const morningTenths = record.morning ? record.morningTenths || 15 : 10;
   const skill = cat.skill;
-  const skillHit = (activeSkill('night') && new Date(record.startAt).getHours() >= NIGHT_HOUR)
-    || (activeSkill('stamina') && minutes >= STAMINA_MINUTES);
-  const skillRate = skillHit ? 15 : 10;
+  let skillRate = 10;
+  if ((activeSkill('night') && new Date(record.startAt).getHours() >= NIGHT_HOUR)
+    || (activeSkill('stamina') && minutes >= STAMINA_MINUTES)) skillRate = 15;
+  if (activeSkill('winter') && isWinter(record.startAt)) skillRate = isHoliday(record.startAt) ? 20 : 15;
   const sessions = load(KEYS.sessions, []);
   const session = {
     id: Date.now(),
@@ -647,7 +680,7 @@ function finish(minutes) {
     coins: Math.floor(minutes * morningTenths * bondRate * skillRate / 1000),
     bondRate,
     morningTenths,
-    skillLabel: skillHit ? `${skill.name} ×1.5` : null,
+    skillLabel: skillRate > 10 ? `${skill.name} ${skillRate % 10 ? formatRate(skillRate) : `×${skillRate / 10}`}` : null,
     morning: !!record.morning,
     understanding: null,
     memo: ''
@@ -656,7 +689,7 @@ function finish(minutes) {
   save(KEYS.sessions, sessions);
   coins += session.coins;
   save(KEYS.coins, coins);
-  const notes = grantMorningRewards().map(item => `${item.name} を手に入れました`);
+  const notes = grantRewards().map(item => item.images ? `${item.name}がやってきました` : `${item.name} を手に入れました`);
   if (isAdmin) bond.devLastStudy = null;
   updateLastStudyDate();
   if (wasAway) {
@@ -1240,21 +1273,36 @@ function itemStatus(category, item) {
   if (item.morningGoal && !isItemUnlocked(item)) {
     return `<span class="store-price">朝活 ${Math.min(morningCount(), item.morningGoal)} / ${item.morningGoal}回</span>`;
   }
+  if (item.decemberGoal && !isItemUnlocked(item)) {
+    return isDecember()
+      ? `<span class="store-price"><span class="season-tag">12月限定</span>${Math.min(decemberDays(), item.decemberGoal)} / ${item.decemberGoal}日</span>`
+      : '<span class="store-price">毎年12月に登場</span>';
+  }
+  if (item.season && !isItemUnlocked(item) && !isWinter()) {
+    return '<span class="store-price">毎年12〜2月に登場</span>';
+  }
   if (equippedItem(category).id === item.id) {
     return '<span class="store-badge">使用中</span>';
   } else if (isItemUnlocked(item)) {
-    return `<span class="store-badge store-badge-owned">${item.morningGoal ? '獲得済み' : '購入済み'}</span>`;
+    return `<span class="store-badge store-badge-owned">${item.morningGoal || item.decemberGoal ? '獲得済み' : '購入済み'}</span>`;
   }
-  return `<span class="store-price"><span class="coin coin-sm"></span>${item.price.toLocaleString()}</span>`;
+  return `<span class="store-price">${item.season ? '<span class="season-tag">冬限定</span>' : ''}<span class="coin coin-sm"></span>${item.price.toLocaleString()}</span>`;
 }
 
 function unavailableReason(category, item) {
   if (item.morningGoal) return `朝活であと${item.morningGoal - morningCount()}回で手に入ります`;
+  if (item.decemberGoal) {
+    return isDecember()
+      ? `12月中にあと${item.decemberGoal - decemberDays()}日勉強すると、${item.name}がやってきます`
+      : `毎年12月に、12月中に${item.decemberGoal}日勉強すると${item.name}がやってきます`;
+  }
+  if (item.season && !isWinter()) return '毎年12〜2月に買えます';
   return 'コインが足りません';
 }
 
 function isItemBuyable(category, item) {
-  if (isItemUnlocked(item) || item.morningGoal) return false;
+  if (isItemUnlocked(item) || item.morningGoal || item.decemberGoal) return false;
+  if (item.season && !isWinter()) return false;
   return coins >= item.price;
 }
 
@@ -1524,7 +1572,7 @@ $('confirm-modal-cancel').addEventListener('click', () => hideConfirm(false));
 $('confirm-modal-ok').addEventListener('click', () => hideConfirm(true));
 
 rollbackLockedItems();
-grantMorningRewards();
+grantRewards();
 updateLastStudyDate();
 applyCat();
 applyGauge();

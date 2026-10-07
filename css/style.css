@@ -1945,3 +1945,11 @@ button {
   gap: 6px;
   font-size: 1.05rem;
 }
+
+.season-tag {
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(160, 200, 255, 0.5);
+  color: #bcd6ff;
+  font-size: 0.66rem;
+}
