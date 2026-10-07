@@ -22,8 +22,8 @@
       <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
     </button>
     <div class="topbar-right">
-      <button type="button" class="coin-pill bond-pill" id="home-bond" aria-label="なつき度を見る"><svg class="heart-icon" viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-7.5-10.2C4.5 7.4 6.6 5.5 9 5.5c1.4 0 2.4.7 3 1.6.6-.9 1.6-1.6 3-1.6 2.4 0 4.5 1.9 4.5 4.8 0 5.6-7.5 10.2-7.5 10.2z" /></svg><span id="bond-days">0</span><svg class="coin-pill-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
-      <button type="button" class="coin-pill" id="home-coin" aria-label="ストアを開く"><span class="coin"></span><span class="coin-count">0</span><span class="x2-badge" id="x2-badge" hidden>×2</span><svg class="coin-pill-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
+      <button type="button" class="coin-pill bond-pill" id="home-bond" aria-label="なつき度を見る"><svg class="heart-icon" viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-7.5-10.2C4.5 7.4 6.6 5.5 9 5.5c1.4 0 2.4.7 3 1.6.6-.9 1.6-1.6 3-1.6 2.4 0 4.5 1.9 4.5 4.8 0 5.6-7.5 10.2-7.5 10.2z" /></svg><span class="bond-count" id="bond-days">0</span><svg class="coin-pill-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
+      <button type="button" class="coin-pill" id="home-coin" aria-label="ストアを開く"><span class="coin"></span><span class="coin-count">0</span><span class="x2-badge" id="x2-badge" hidden>×1.5</span><svg class="coin-pill-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
     </div>
   </header>
 
@@ -80,15 +80,21 @@
     <button type="button" class="btn-primary btn-start" id="btn-start">はじめる</button>
     <div class="morning-hint" id="morning-hint" hidden>
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" /></svg>
-      <span id="morning-hint-text">朝活ボーナス中　コイン×2</span>
+      <span id="morning-hint-text">朝活ボーナス中　コイン×1.5</span>
     </div>
   </main>
 
   <div class="drawer-overlay" id="drawer">
     <nav class="drawer">
-      <div class="drawer-coins">
-        <span class="drawer-coins-label">コイン</span>
-        <span class="drawer-coins-value"><span class="coin"></span><span class="coin-count">0</span></span>
+      <div class="drawer-stats">
+        <button type="button" class="drawer-coins" data-page="page-store">
+          <span class="drawer-coins-label">コイン</span>
+          <span class="drawer-coins-value"><span class="coin"></span><span class="coin-count">0</span></span>
+        </button>
+        <button type="button" class="drawer-coins drawer-bond" data-page="page-bond">
+          <span class="drawer-coins-label">なつき度</span>
+          <span class="drawer-coins-value"><svg class="heart-icon" viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-7.5-10.2C4.5 7.4 6.6 5.5 9 5.5c1.4 0 2.4.7 3 1.6.6-.9 1.6-1.6 3-1.6 2.4 0 4.5 1.9 4.5 4.8 0 5.6-7.5 10.2-7.5 10.2z" /></svg><span class="bond-count">0</span></span>
+        </button>
       </div>
       <button type="button" class="menu-item" data-page="page-calendar">
         <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M9 3v4M15 3v4" /></svg>
@@ -101,6 +107,10 @@
       <button type="button" class="menu-item" data-page="page-tags">
         <svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8L3 12z" /><circle cx="7.5" cy="8.5" r="1.2" /></svg>
         <span>タグ</span>
+      </button>
+      <button type="button" class="menu-item" data-page="page-bond">
+        <svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-7.5-10.2C4.5 7.4 6.6 5.5 9 5.5c1.4 0 2.4.7 3 1.6.6-.9 1.6-1.6 3-1.6 2.4 0 4.5 1.9 4.5 4.8 0 5.6-7.5 10.2-7.5 10.2z" /></svg>
+        <span>なつき度</span>
       </button>
       <button type="button" class="menu-item" data-page="page-store">
         <svg viewBox="0 0 24 24"><path d="M4 9l1.5-5h13L20 9M4 9h16M4 9v11h16V9M9 20v-6h6v6" /></svg>
@@ -181,7 +191,7 @@
       <span class="page-head-side"></span>
     </div>
     <div class="page-body">
-      <div class="bond-me">
+      <button type="button" class="bond-me" id="bond-me">
         <img class="bond-me-cat" id="bond-me-cat" src="images/cat-sit.jpg" alt="">
         <div class="bond-me-text">
           <span class="bond-me-name" id="bond-me-name"></span>
@@ -189,7 +199,8 @@
           <span class="bond-me-days"><span id="bond-me-days"></span><span class="bond-me-rate" id="bond-me-rate"></span></span>
           <span class="bond-me-mood" id="bond-me-mood" hidden></span>
         </div>
-      </div>
+        <span class="bond-me-switch">切り替え ›</span>
+      </button>
       <div class="bond-skill" id="bond-skill">
         <b id="bond-skill-name"></b>
         <span id="bond-skill-text"></span>
@@ -267,7 +278,7 @@
         </button>
         <div class="accordion-body" hidden>
           <div class="app-info-row">
-            <span class="app-version">Version 0.13.0</span>
+            <span class="app-version">Version 0.14.0</span>
             <button type="button" class="btn-small" id="btn-fetch-latest">最新版を取得</button>
           </div>
         </div>
@@ -293,6 +304,15 @@
       <div class="goal-lead">毎日の勉強時間が目標に届くと、猫のなつき度が +1日 されます。</div>
       <div class="goal-grid" id="goal-grid"></div>
       <div class="goal-note">変えた目標は、今日の分からすぐに使われます。</div>
+    </div>
+  </div>
+
+  <div class="sheet-overlay" id="cat-sheet">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="goal-title">猫をえらぶ</div>
+      <div class="cat-list" id="cat-list"></div>
+      <button type="button" class="btn-outline" id="cat-sheet-store">ストアで猫をさがす</button>
     </div>
   </div>
 
@@ -322,7 +342,7 @@
       <span class="done-tag" id="done-tag"><span class="tag-dot"></span><span id="done-tag-name"></span></span>
       <img class="done-cat" id="done-cat" src="images/cat-sit.jpg" alt="">
       <div class="done-minutes" id="done-minutes"></div>
-      <div class="done-coins" id="done-coins-row"><span class="coin"></span><span id="done-coins"></span><span class="bonus-tag" id="done-bonus" hidden>朝活ボーナス ×2</span><span class="bonus-tag bond-tag" id="done-bond-bonus" hidden></span><span class="bonus-tag skill-tag" id="done-skill-bonus" hidden></span></div>
+      <div class="done-coins" id="done-coins-row"><span class="coin"></span><span id="done-coins"></span><span class="bonus-tag" id="done-bonus" hidden>朝活ボーナス ×1.5</span><span class="bonus-tag bond-tag" id="done-bond-bonus" hidden></span><span class="bonus-tag skill-tag" id="done-skill-bonus" hidden></span></div>
       <div class="done-sub" id="done-sub"></div>
       <div class="done-unlock" id="done-unlock" hidden></div>
       <div class="understanding-select" id="understanding-select">

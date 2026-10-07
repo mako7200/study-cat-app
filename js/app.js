@@ -37,7 +37,7 @@ const HEART_PATH = 'M12 20.5s-7.5-4.6-7.5-10.2C4.5 7.4 6.6 5.5 9 5.5c1.4 0 2.4.7
 const SHOP = {
   cat: [
     { id: 'cat-noir', name: 'ノワール', price: 0, skill: { id: 'night', name: '夜型', text: '18時以降に始めた勉強でコイン ×1.5' }, images: { idle: 'images/cat-sleep.jpg', running: 'images/cat-back.jpg', done: 'images/cat-sit.jpg' } },
-    { id: 'cat-luna', name: 'ルナ', price: 600, skill: { id: 'morning', name: '朝型', text: '朝活ボーナスが ×2 から ×3 に' }, images: { idle: 'images/cat-white-sleep.jpg', running: 'images/cat-white-back.jpg', done: 'images/cat-white-sit.jpg' } },
+    { id: 'cat-luna', name: 'ルナ', price: 600, skill: { id: 'morning', name: '朝型', text: '朝活ボーナスが ×1.5 から ×2.5 に' }, images: { idle: 'images/cat-white-sleep.jpg', running: 'images/cat-white-back.jpg', done: 'images/cat-white-sit.jpg' } },
     { id: 'cat-mike', name: 'ミケ', price: 1000, skill: { id: 'friendly', name: '人なつっこい', text: '目標を達成した日、なつき度 +2日' }, images: { idle: 'images/cat-calico-sleep.jpg', running: 'images/cat-calico-back.jpg', done: 'images/cat-calico-sit.jpg' } },
     { id: 'cat-moka', name: 'モカ', price: 2000, skill: { id: 'calm', name: 'のんびり屋', text: 'すねるまで4日、家出まで6日' }, images: { idle: 'images/cat-scottish-sleep.jpg', running: 'images/cat-scottish-back.jpg', done: 'images/cat-scottish-sit.jpg' } },
     { id: 'cat-leo', name: 'レオ', price: 3000, skill: { id: 'stamina', name: '体力自慢', text: '1回60分以上の勉強でコイン ×1.5' }, images: { idle: 'images/cat-bengal-sleep.jpg', running: 'images/cat-bengal-back.jpg', done: 'images/cat-bengal-sit.jpg' } }
@@ -339,7 +339,7 @@ function activeSkill(id) {
 }
 
 function morningRate() {
-  return activeSkill('morning') ? 3 : 2;
+  return activeSkill('morning') ? 25 : 15;
 }
 
 function catBondDays(catId = equippedItem('cat').id) {
@@ -429,7 +429,10 @@ function renderBond() {
   const cat = equippedItem('cat');
   const days = catBondDays(cat.id);
   const index = stageIndex(days);
-  $('bond-days').textContent = days;
+  document.querySelectorAll('.bond-count').forEach(el => {
+    el.textContent = days;
+  });
+  if ($('cat-sheet').classList.contains('show')) renderCatSheet();
   $('home-bond').classList.toggle('sad', mood !== 'normal');
 
   $('bond-me-cat').src = cat.images.done;
@@ -588,11 +591,11 @@ function isMorning(ms) {
 
 function renderMorning() {
   const active = running ? !!running.morning : isMorning(Date.now());
-  const rate = running ? running.morningRate || 2 : morningRate();
+  const rate = formatRate(running ? running.morningTenths || 15 : morningRate());
   $('x2-badge').hidden = !active;
-  $('x2-badge').textContent = `×${rate}`;
+  $('x2-badge').textContent = rate;
   $('morning-hint').hidden = !active;
-  $('morning-hint-text').textContent = `朝活ボーナス中　コイン×${rate}`;
+  $('morning-hint-text').textContent = `朝活ボーナス中　コイン${rate}`;
 }
 
 setInterval(() => {
@@ -604,7 +607,7 @@ setInterval(() => {
 function start() {
   const tag = currentTag();
   const morning = isMorning(Date.now());
-  running = { startAt: Date.now(), minutes: prefs.minutes, tagId: tag.id, tagName: tag.name, morning, morningRate: morning ? morningRate() : 1 };
+  running = { startAt: Date.now(), minutes: prefs.minutes, tagId: tag.id, tagName: tag.name, morning, morningTenths: morning ? morningRate() : 10 };
   save(KEYS.running, running);
   renderTimer();
   startTick();
@@ -623,7 +626,7 @@ function finish(minutes) {
   const mood = bondMood();
   const wasAway = mood === 'away';
   const bondRate = mood === 'normal' ? BOND_STAGES[stageIndex(catBondDays())].rate : 10;
-  const morningMul = record.morning ? record.morningRate || 2 : 1;
+  const morningTenths = record.morning ? record.morningTenths || 15 : 10;
   const skill = equippedItem('cat').skill;
   const skillHit = (activeSkill('night') && new Date(record.startAt).getHours() >= NIGHT_HOUR)
     || (activeSkill('stamina') && minutes >= STAMINA_MINUTES);
@@ -636,9 +639,9 @@ function finish(minutes) {
     tagId: record.tagId,
     tagName: record.tagName,
     minutes,
-    coins: Math.floor(minutes * morningMul * bondRate * skillRate / 100),
+    coins: Math.floor(minutes * morningTenths * bondRate * skillRate / 1000),
     bondRate,
-    morningRate: morningMul,
+    morningTenths,
     skillLabel: skillHit ? `${skill.name} ×1.5` : null,
     morning: !!record.morning,
     understanding: null,
@@ -719,7 +722,7 @@ function openDone(session, notes = [], editing = false) {
   $('done-coins-row').hidden = editing;
   $('done-coins').textContent = `+${session.coins ?? session.minutes}`;
   $('done-bonus').hidden = !session.morning;
-  $('done-bonus').textContent = `朝活ボーナス ×${session.morningRate || 2}`;
+  $('done-bonus').textContent = `朝活ボーナス ${formatRate(session.morningTenths || 15)}`;
   $('done-skill-bonus').hidden = !session.skillLabel;
   $('done-skill-bonus').textContent = session.skillLabel || '';
   $('done-bond-bonus').hidden = !(session.bondRate > 10);
@@ -790,10 +793,55 @@ $('btn-menu').addEventListener('click', openDrawer);
 
 $('home-coin').addEventListener('click', () => $('page-store').classList.add('show'));
 
-$('home-bond').addEventListener('click', () => {
-  renderBond();
-  $('page-bond').classList.add('show');
-  if (!bond.goalAsked) openGoalSheet();
+function openPage(id) {
+  if (id === 'page-calendar') {
+    const now = new Date();
+    calMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    renderCalendar();
+  }
+  if (id === 'page-bond') renderBond();
+  $(id).classList.add('show');
+  if (id === 'page-bond' && !bond.goalAsked) openGoalSheet();
+}
+
+$('home-bond').addEventListener('click', () => openPage('page-bond'));
+
+function renderCatSheet() {
+  const current = equippedItem('cat').id;
+  $('cat-list').innerHTML = SHOP.cat.filter(isItemUnlocked).map(cat => {
+    const days = catBondDays(cat.id);
+    return `<button type="button" class="cat-row${cat.id === current ? ' using' : ''}" data-id="${cat.id}">
+      <img src="${cat.images.done}" alt="">
+      <span class="cat-row-text">
+        <span class="cat-row-name">${cat.name}${cat.id === current ? '<span class="store-badge">使用中</span>' : ''}</span>
+        <span class="cat-row-stage">${BOND_STAGES[stageIndex(days)].name}　${days}日</span>
+        <span class="cat-row-skill">${cat.skill.name}：${cat.skill.text}</span>
+      </span>
+    </button>`;
+  }).join('');
+}
+
+$('bond-me').addEventListener('click', () => {
+  renderCatSheet();
+  $('cat-sheet').classList.add('show');
+});
+
+$('cat-list').addEventListener('click', event => {
+  const row = event.target.closest('.cat-row');
+  if (!row) return;
+  equip('cat', SHOP.cat.find(c => c.id === row.dataset.id));
+  renderStore();
+  $('cat-sheet').classList.remove('show');
+});
+
+$('cat-sheet').addEventListener('click', event => {
+  if (event.target === $('cat-sheet')) $('cat-sheet').classList.remove('show');
+});
+
+$('cat-sheet-store').addEventListener('click', () => {
+  $('cat-sheet').classList.remove('show');
+  $('page-bond').classList.remove('show');
+  openPage('page-store');
 });
 
 $('bond-today').addEventListener('click', openGoalSheet);
@@ -820,14 +868,9 @@ catRing.addEventListener('click', event => {
 });
 
 drawer.addEventListener('click', event => {
-  const item = event.target.closest('.menu-item');
+  const item = event.target.closest('[data-page]');
   if (item) {
-    if (item.dataset.page === 'page-calendar') {
-      const now = new Date();
-      calMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      renderCalendar();
-    }
-    $(item.dataset.page).classList.add('show');
+    openPage(item.dataset.page);
     closeDrawer();
     return;
   }
