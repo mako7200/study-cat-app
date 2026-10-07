@@ -1,4 +1,4 @@
-const CACHE_NAME = 'study-cat-v15';
+const CACHE_NAME = 'study-cat-v16';
 const CACHE_FILES = [
   './',
   './index.html',
@@ -14,6 +14,15 @@ const CACHE_FILES = [
   './images/cat-white-sleep.jpg',
   './images/cat-white-back.jpg',
   './images/cat-white-sit.jpg',
+  './images/cat-bengal-sleep.jpg',
+  './images/cat-bengal-back.jpg',
+  './images/cat-bengal-sit.jpg',
+  './images/cat-calico-sleep.jpg',
+  './images/cat-calico-back.jpg',
+  './images/cat-calico-sit.jpg',
+  './images/cat-scottish-sleep.jpg',
+  './images/cat-scottish-back.jpg',
+  './images/cat-scottish-sit.jpg',
   './images/wall-minato.jpg',
   './images/wall-minato-thumb.jpg',
   './images/wall-kogen.jpg',

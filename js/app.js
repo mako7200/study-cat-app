@@ -21,7 +21,10 @@ const MORNING_END = 10;
 const SHOP = {
   cat: [
     { id: 'cat-noir', name: 'ノワール', price: 0, images: { idle: 'images/cat-sleep.jpg', running: 'images/cat-back.jpg', done: 'images/cat-sit.jpg' } },
-    { id: 'cat-luna', name: 'ルナ', price: 3000, images: { idle: 'images/cat-white-sleep.jpg', running: 'images/cat-white-back.jpg', done: 'images/cat-white-sit.jpg' } }
+    { id: 'cat-luna', name: 'ルナ', price: 3000, images: { idle: 'images/cat-white-sleep.jpg', running: 'images/cat-white-back.jpg', done: 'images/cat-white-sit.jpg' } },
+    { id: 'cat-leo', name: 'レオ', price: 3000, images: { idle: 'images/cat-bengal-sleep.jpg', running: 'images/cat-bengal-back.jpg', done: 'images/cat-bengal-sit.jpg' } },
+    { id: 'cat-mike', name: 'ミケ', price: 3000, images: { idle: 'images/cat-calico-sleep.jpg', running: 'images/cat-calico-back.jpg', done: 'images/cat-calico-sit.jpg' } },
+    { id: 'cat-moka', name: 'モカ', price: 3000, images: { idle: 'images/cat-scottish-sleep.jpg', running: 'images/cat-scottish-back.jpg', done: 'images/cat-scottish-sit.jpg' } }
   ],
   gauge: [
     { id: 'gauge-wakaba', name: '若葉', price: 0, color: '#6FA88C' },
@@ -142,6 +145,23 @@ function dateStr(ms) {
 function formatDate(isoDate) {
   const [y, m, d] = isoDate.split('-');
   return `${y}/${Number(m)}/${Number(d)}`;
+}
+
+function formatDay(isoDate) {
+  const [y, m, d] = isoDate.split('-').map(Number);
+  return `${m}月${d}日（${WEEKDAYS[new Date(y, m - 1, d).getDay()]}）`;
+}
+
+function formatClock(ms) {
+  const d = new Date(ms);
+  return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function sessionTag(session) {
+  const tag = findTag(session.tagId);
+  return tag
+    ? { key: `id-${tag.id}`, name: tag.name, color: tag.color }
+    : { key: `name-${session.tagName}`, name: session.tagName, color: 'var(--text-sub)' };
 }
 
 function formatTime(sec) {
@@ -420,18 +440,29 @@ document.addEventListener('visibilitychange', () => {
 let doneSessionId = null;
 let doneUnderstanding = null;
 
-function openDone(session, rewards = []) {
+function openDone(session, rewards = [], editing = false) {
   doneSessionId = session.id;
-  doneUnderstanding = null;
-  doneMemo.value = '';
-  understandingSelect.querySelectorAll('.understanding-btn').forEach(b => b.classList.remove('selected'));
+  doneUnderstanding = editing ? session.understanding : null;
+  doneMemo.value = editing ? session.memo : '';
+  understandingSelect.querySelectorAll('.understanding-btn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.level === doneUnderstanding);
+  });
   $('done-minutes').textContent = `${session.minutes} min`;
+  $('done-coins-row').hidden = editing;
   $('done-coins').textContent = `+${session.coins ?? session.minutes}`;
   $('done-bonus').hidden = !session.morning;
   $('done-unlock').hidden = rewards.length === 0;
   $('done-unlock').textContent = rewards.map(item => `${item.name} を手に入れました`).join('\n');
-  $('done-sub').textContent = `${session.tagName}　お疲れさま`;
+  $('done-sub').textContent = editing
+    ? `${formatDay(session.date)}　${sessionTag(session).name}`
+    : `${session.tagName}　お疲れさま`;
+  $('done-skip').textContent = editing ? 'キャンセル' : 'スキップ';
   doneModal.classList.add('show');
+}
+
+function editSession(id) {
+  const session = load(KEYS.sessions, []).find(s => s.id === id);
+  if (session) openDone(session, [], true);
 }
 
 function closeDone() {
@@ -458,6 +489,7 @@ $('done-save').addEventListener('click', () => {
     session.memo = doneMemo.value.trim();
     save(KEYS.sessions, sessions);
     renderLogs();
+    if ($('day-sheet').classList.contains('show')) renderDaySheet();
   }
   closeDone();
 });
@@ -635,11 +667,9 @@ function renderLogs() {
     return;
   }
   logList.innerHTML = sessions.slice().sort((a, b) => b.id - a.id).map(s => {
-    const tag = findTag(s.tagId);
-    const name = tag ? tag.name : s.tagName;
-    const color = tag ? tag.color : 'var(--text-sub)';
+    const { name, color } = sessionTag(s);
     return `
-      <div class="log-item">
+      <div class="log-item" data-id="${s.id}">
         <button type="button" class="log-item-delete" data-id="${s.id}">×</button>
         <div class="log-item-top">
           <span class="log-item-date">${formatDate(s.date)}</span>
@@ -654,7 +684,11 @@ function renderLogs() {
 
 logList.addEventListener('click', async event => {
   const btn = event.target.closest('.log-item-delete');
-  if (!btn) return;
+  if (!btn) {
+    const item = event.target.closest('.log-item');
+    if (item) editSession(Number(item.dataset.id));
+    return;
+  }
   const ok = await showConfirm('この記録を削除しますか？', '削除する');
   if (!ok) return;
   const id = Number(btn.dataset.id);
@@ -744,26 +778,61 @@ $('cal-next').addEventListener('click', () => {
   renderCalendar();
 });
 
+let dayDate = null;
+const dayOpenTags = new Set();
+
+function renderDaySheet() {
+  const sessions = (sessionsByDate()[dayDate] || []).slice().sort((a, b) => a.id - b.id);
+  if (sessions.length === 0) {
+    $('day-sheet').classList.remove('show');
+    return;
+  }
+  const byTag = {};
+  sessions.forEach(s => {
+    const tag = sessionTag(s);
+    if (!byTag[tag.key]) byTag[tag.key] = { ...tag, minutes: 0, sessions: [] };
+    byTag[tag.key].minutes += s.minutes;
+    byTag[tag.key].sessions.push(s);
+  });
+  $('day-title').textContent = formatDay(dayDate);
+  $('day-total').textContent = `${sessions.reduce((a, s) => a + s.minutes, 0)} min`;
+  $('day-list').innerHTML = Object.values(byTag).sort((a, b) => b.minutes - a.minutes).map(t => {
+    const open = dayOpenTags.has(t.key);
+    const records = t.sessions.map(s => `
+      <button type="button" class="day-record" data-id="${s.id}">
+        <span class="day-record-top"><span>${formatClock(s.id)}</span><span>${s.minutes} min</span></span>
+        ${s.understanding ? `<span class="log-item-understanding">${UNDERSTANDING_LABEL[s.understanding]}</span>` : ''}
+        ${s.memo ? `<span class="log-item-memo">${escapeHtml(s.memo)}</span>` : ''}
+      </button>`).join('');
+    return `
+      <div class="day-group${open ? ' open' : ''}">
+        <button type="button" class="day-row" data-key="${escapeHtml(t.key)}"><span class="tag-dot" style="background:${t.color}"></span><span class="day-row-name">${escapeHtml(t.name)}</span><span class="day-row-min">${t.minutes} min</span><svg class="day-row-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></button>
+        <div class="day-records">${records}</div>
+      </div>`;
+  }).join('');
+}
+
 $('cal-grid').addEventListener('click', event => {
   const cell = event.target.closest('.cal-cell.studied');
   if (!cell) return;
-  const date = cell.dataset.date;
-  const sessions = sessionsByDate()[date];
-  const byTag = {};
-  sessions.forEach(s => {
-    const tag = findTag(s.tagId);
-    const key = tag ? `id-${tag.id}` : `name-${s.tagName}`;
-    if (!byTag[key]) byTag[key] = { name: tag ? tag.name : s.tagName, color: tag ? tag.color : 'var(--text-sub)', minutes: 0 };
-    byTag[key].minutes += s.minutes;
-  });
-  const [y, m, d] = date.split('-').map(Number);
-  const weekday = WEEKDAYS[new Date(y, m - 1, d).getDay()];
-  $('day-title').textContent = `${m}月${d}日（${weekday}）`;
-  $('day-total').textContent = `${sessions.reduce((a, s) => a + s.minutes, 0)} min`;
-  $('day-list').innerHTML = Object.values(byTag).sort((a, b) => b.minutes - a.minutes).map(t =>
-    `<div class="day-row"><span class="tag-dot" style="background:${t.color}"></span><span class="day-row-name">${escapeHtml(t.name)}</span><span class="day-row-min">${t.minutes} min</span></div>`
-  ).join('');
+  dayDate = cell.dataset.date;
+  dayOpenTags.clear();
+  renderDaySheet();
   $('day-sheet').classList.add('show');
+});
+
+$('day-list').addEventListener('click', event => {
+  const record = event.target.closest('.day-record');
+  if (record) {
+    editSession(Number(record.dataset.id));
+    return;
+  }
+  const row = event.target.closest('.day-row');
+  if (!row) return;
+  const key = row.dataset.key;
+  if (dayOpenTags.has(key)) dayOpenTags.delete(key);
+  else dayOpenTags.add(key);
+  row.parentElement.classList.toggle('open');
 });
 
 $('day-sheet').addEventListener('click', event => {
