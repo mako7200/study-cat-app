@@ -29,15 +29,18 @@ const BOND_STAGES = [
 const GOAL_OPTIONS = [10, 15, 30, 60, 90, 120];
 const SULK_DAYS = 2;
 const AWAY_DAYS = 4;
+const SKILL_STAGE = 2;
+const NIGHT_HOUR = 18;
+const STAMINA_MINUTES = 60;
 const HEART_PATH = 'M12 20.5s-7.5-4.6-7.5-10.2C4.5 7.4 6.6 5.5 9 5.5c1.4 0 2.4.7 3 1.6.6-.9 1.6-1.6 3-1.6 2.4 0 4.5 1.9 4.5 4.8 0 5.6-7.5 10.2-7.5 10.2z';
 
 const SHOP = {
   cat: [
-    { id: 'cat-noir', name: 'ノワール', price: 0, images: { idle: 'images/cat-sleep.jpg', running: 'images/cat-back.jpg', done: 'images/cat-sit.jpg' } },
-    { id: 'cat-luna', name: 'ルナ', price: 600, images: { idle: 'images/cat-white-sleep.jpg', running: 'images/cat-white-back.jpg', done: 'images/cat-white-sit.jpg' } },
-    { id: 'cat-mike', name: 'ミケ', price: 1000, images: { idle: 'images/cat-calico-sleep.jpg', running: 'images/cat-calico-back.jpg', done: 'images/cat-calico-sit.jpg' } },
-    { id: 'cat-moka', name: 'モカ', price: 2000, images: { idle: 'images/cat-scottish-sleep.jpg', running: 'images/cat-scottish-back.jpg', done: 'images/cat-scottish-sit.jpg' } },
-    { id: 'cat-leo', name: 'レオ', price: 3000, images: { idle: 'images/cat-bengal-sleep.jpg', running: 'images/cat-bengal-back.jpg', done: 'images/cat-bengal-sit.jpg' } }
+    { id: 'cat-noir', name: 'ノワール', price: 0, skill: { id: 'night', name: '夜型', text: '18時以降に始めた勉強でコイン ×1.5' }, images: { idle: 'images/cat-sleep.jpg', running: 'images/cat-back.jpg', done: 'images/cat-sit.jpg' } },
+    { id: 'cat-luna', name: 'ルナ', price: 600, skill: { id: 'morning', name: '朝型', text: '朝活ボーナスが ×2 から ×3 に' }, images: { idle: 'images/cat-white-sleep.jpg', running: 'images/cat-white-back.jpg', done: 'images/cat-white-sit.jpg' } },
+    { id: 'cat-mike', name: 'ミケ', price: 1000, skill: { id: 'friendly', name: '人なつっこい', text: '目標を達成した日、なつき度 +2日' }, images: { idle: 'images/cat-calico-sleep.jpg', running: 'images/cat-calico-back.jpg', done: 'images/cat-calico-sit.jpg' } },
+    { id: 'cat-moka', name: 'モカ', price: 2000, skill: { id: 'calm', name: 'のんびり屋', text: 'すねるまで4日、家出まで6日' }, images: { idle: 'images/cat-scottish-sleep.jpg', running: 'images/cat-scottish-back.jpg', done: 'images/cat-scottish-sit.jpg' } },
+    { id: 'cat-leo', name: 'レオ', price: 3000, skill: { id: 'stamina', name: '体力自慢', text: '1回60分以上の勉強でコイン ×1.5' }, images: { idle: 'images/cat-bengal-sleep.jpg', running: 'images/cat-bengal-back.jpg', done: 'images/cat-bengal-sit.jpg' } }
   ],
   gauge: [
     { id: 'gauge-wakaba', name: '若葉', price: 0, color: '#6FA88C' },
@@ -310,11 +313,33 @@ function missedDays() {
   return Math.max(daysBetween(last, dateStr(Date.now())) - 1, 0);
 }
 
+function skillReady(catId = equippedItem('cat').id) {
+  return stageIndex(catBondDays(catId)) >= SKILL_STAGE;
+}
+
+function hasSkill(id) {
+  const cat = equippedItem('cat');
+  return cat.skill.id === id && skillReady(cat.id);
+}
+
+function moodDays() {
+  return hasSkill('calm') ? { sulk: SULK_DAYS + 2, away: AWAY_DAYS + 2 } : { sulk: SULK_DAYS, away: AWAY_DAYS };
+}
+
 function bondMood() {
   const missed = missedDays();
-  if (missed >= AWAY_DAYS) return 'away';
-  if (missed >= SULK_DAYS) return 'sulk';
+  const limits = moodDays();
+  if (missed >= limits.away) return 'away';
+  if (missed >= limits.sulk) return 'sulk';
   return 'normal';
+}
+
+function activeSkill(id) {
+  return hasSkill(id) && bondMood() === 'normal';
+}
+
+function morningRate() {
+  return activeSkill('morning') ? 3 : 2;
 }
 
 function catBondDays(catId = equippedItem('cat').id) {
@@ -327,7 +352,7 @@ function addBondDays(delta) {
 }
 
 function applyBondPenalty() {
-  const target = Math.max(missedDays() - AWAY_DAYS + 1, 0);
+  const target = Math.max(missedDays() - moodDays().away + 1, 0);
   const base = bondLastStudy();
   if (bond.penaltyBase !== base) {
     bond.penaltyBase = base;
@@ -347,11 +372,12 @@ function todayMinutes() {
 
 function creditBond() {
   const today = dateStr(Date.now());
-  if (bond.creditDate === today || todayMinutes() < bond.goal) return false;
-  addBondDays(1);
+  if (bond.creditDate === today || todayMinutes() < bond.goal) return 0;
+  const gain = activeSkill('friendly') ? 2 : 1;
+  addBondDays(gain);
   bond.creditDate = today;
   saveBond();
-  return true;
+  return gain;
 }
 
 function stageIndex(days) {
@@ -412,6 +438,13 @@ function renderBond() {
   $('bond-me-hearts').innerHTML = heartsHtml(index);
   $('bond-me-days').textContent = `${days}日`;
   $('bond-me-rate').textContent = `コイン ${formatRate(BOND_STAGES[index].rate)}`;
+  $('bond-skill-name').textContent = `スキル：${cat.skill.name}`;
+  $('bond-skill-text').textContent = cat.skill.text;
+  const skillLeft = BOND_STAGES[SKILL_STAGE].days - days;
+  $('bond-skill-state').textContent = skillLeft > 0
+    ? `${BOND_STAGES[SKILL_STAGE].name}から使えます（あと${skillLeft}日）`
+    : mood === 'normal' ? '使えます' : '機嫌が直ると使えます';
+  $('bond-skill').classList.toggle('ready', skillLeft <= 0 && mood === 'normal');
   $('bond-me-mood').hidden = mood === 'normal';
   $('bond-me-mood').textContent = mood === 'away' ? '家出中です。勉強すると帰ってきます' : 'すねています。勉強すると機嫌が直ります';
 
@@ -555,8 +588,11 @@ function isMorning(ms) {
 
 function renderMorning() {
   const active = running ? !!running.morning : isMorning(Date.now());
+  const rate = running ? running.morningRate || 2 : morningRate();
   $('x2-badge').hidden = !active;
+  $('x2-badge').textContent = `×${rate}`;
   $('morning-hint').hidden = !active;
+  $('morning-hint-text').textContent = `朝活ボーナス中　コイン×${rate}`;
 }
 
 setInterval(() => {
@@ -567,7 +603,8 @@ setInterval(() => {
 
 function start() {
   const tag = currentTag();
-  running = { startAt: Date.now(), minutes: prefs.minutes, tagId: tag.id, tagName: tag.name, morning: isMorning(Date.now()) };
+  const morning = isMorning(Date.now());
+  running = { startAt: Date.now(), minutes: prefs.minutes, tagId: tag.id, tagName: tag.name, morning, morningRate: morning ? morningRate() : 1 };
   save(KEYS.running, running);
   renderTimer();
   startTick();
@@ -586,6 +623,11 @@ function finish(minutes) {
   const mood = bondMood();
   const wasAway = mood === 'away';
   const bondRate = mood === 'normal' ? BOND_STAGES[stageIndex(catBondDays())].rate : 10;
+  const morningMul = record.morning ? record.morningRate || 2 : 1;
+  const skill = equippedItem('cat').skill;
+  const skillHit = (activeSkill('night') && new Date(record.startAt).getHours() >= NIGHT_HOUR)
+    || (activeSkill('stamina') && minutes >= STAMINA_MINUTES);
+  const skillRate = skillHit ? 15 : 10;
   const sessions = load(KEYS.sessions, []);
   const session = {
     id: Date.now(),
@@ -594,8 +636,10 @@ function finish(minutes) {
     tagId: record.tagId,
     tagName: record.tagName,
     minutes,
-    coins: Math.floor(minutes * (record.morning ? 2 : 1) * bondRate / 10),
+    coins: Math.floor(minutes * morningMul * bondRate * skillRate / 100),
     bondRate,
+    morningRate: morningMul,
+    skillLabel: skillHit ? `${skill.name} ×1.5` : null,
     morning: !!record.morning,
     understanding: null,
     memo: ''
@@ -613,7 +657,8 @@ function finish(minutes) {
     saveBond();
     notes.push(`${catName}が帰ってきました`);
   }
-  if (creditBond()) notes.push(`${catName}のなつき度 +1日`);
+  const gain = creditBond();
+  if (gain) notes.push(`${catName}のなつき度 +${gain}日`);
   renderCoins();
   renderStore();
   renderLogs();
@@ -674,6 +719,9 @@ function openDone(session, notes = [], editing = false) {
   $('done-coins-row').hidden = editing;
   $('done-coins').textContent = `+${session.coins ?? session.minutes}`;
   $('done-bonus').hidden = !session.morning;
+  $('done-bonus').textContent = `朝活ボーナス ×${session.morningRate || 2}`;
+  $('done-skill-bonus').hidden = !session.skillLabel;
+  $('done-skill-bonus').textContent = session.skillLabel || '';
   $('done-bond-bonus').hidden = !(session.bondRate > 10);
   $('done-bond-bonus').textContent = `なつき度 ${formatRate(session.bondRate || 10)}`;
   $('done-unlock').hidden = notes.length === 0;
@@ -756,7 +804,8 @@ $('goal-grid').addEventListener('click', event => {
   bond.goal = Number(btn.dataset.goal);
   saveBond();
   closeGoalSheet();
-  if (creditBond()) showToast(`${equippedItem('cat').name}のなつき度 +1日`);
+  const gain = creditBond();
+  if (gain) showToast(`${equippedItem('cat').name}のなつき度 +${gain}日`);
   renderBond();
 });
 
@@ -1168,6 +1217,7 @@ function renderStoreCards(category) {
       <button type="button" class="store-card${using ? ' using' : ''}" data-category="${category}" data-id="${item.id}">
         <div class="store-preview">${itemPreview(category, item)}</div>
         <span class="store-name">${item.name}</span>
+        ${item.skill ? `<span class="store-skill">${item.skill.name}：${item.skill.text}</span>` : ''}
         ${itemStatus(category, item)}
       </button>`;
   }).join('');

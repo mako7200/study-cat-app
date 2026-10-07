@@ -80,7 +80,7 @@
     <button type="button" class="btn-primary btn-start" id="btn-start">はじめる</button>
     <div class="morning-hint" id="morning-hint" hidden>
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" /></svg>
-      <span>朝活ボーナス中　コイン×2</span>
+      <span id="morning-hint-text">朝活ボーナス中　コイン×2</span>
     </div>
   </main>
 
@@ -190,6 +190,11 @@
           <span class="bond-me-mood" id="bond-me-mood" hidden></span>
         </div>
       </div>
+      <div class="bond-skill" id="bond-skill">
+        <b id="bond-skill-name"></b>
+        <span id="bond-skill-text"></span>
+        <small id="bond-skill-state"></small>
+      </div>
       <div class="bond-next">
         <div class="bond-next-row"><span id="bond-next-label"></span><b id="bond-next-left"></b></div>
         <div class="bond-bar"><span id="bond-bar"></span></div>
@@ -207,6 +212,7 @@
         <li>2日勉強しないと<b>すねる</b>、4日で<b>家出</b>（家出中は毎日 −1日）</li>
         <li>勉強すれば、すぐ帰ってくる</li>
         <li>段階が上がると、もらえる<b>コインが増える</b>（すねている時と家出中は増えない）</li>
+        <li>なかよしになると、猫ごとの<b>スキル</b>が使える</li>
       </ul>
       <p class="bond-foot">なつき度は猫ごとに別々です。1日の目標は、上の「今日の目標」をタップして変えられます。</p>
     </div>
@@ -261,7 +267,7 @@
         </button>
         <div class="accordion-body" hidden>
           <div class="app-info-row">
-            <span class="app-version">Version 0.12.0</span>
+            <span class="app-version">Version 0.13.0</span>
             <button type="button" class="btn-small" id="btn-fetch-latest">最新版を取得</button>
           </div>
         </div>
@@ -316,7 +322,7 @@
       <span class="done-tag" id="done-tag"><span class="tag-dot"></span><span id="done-tag-name"></span></span>
       <img class="done-cat" id="done-cat" src="images/cat-sit.jpg" alt="">
       <div class="done-minutes" id="done-minutes"></div>
-      <div class="done-coins" id="done-coins-row"><span class="coin"></span><span id="done-coins"></span><span class="bonus-tag" id="done-bonus" hidden>朝活ボーナス ×2</span><span class="bonus-tag bond-tag" id="done-bond-bonus" hidden></span></div>
+      <div class="done-coins" id="done-coins-row"><span class="coin"></span><span id="done-coins"></span><span class="bonus-tag" id="done-bonus" hidden>朝活ボーナス ×2</span><span class="bonus-tag bond-tag" id="done-bond-bonus" hidden></span><span class="bonus-tag skill-tag" id="done-skill-bonus" hidden></span></div>
       <div class="done-sub" id="done-sub"></div>
       <div class="done-unlock" id="done-unlock" hidden></div>
       <div class="understanding-select" id="understanding-select">
