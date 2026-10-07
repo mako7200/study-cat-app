@@ -1953,3 +1953,8 @@ button {
   color: #bcd6ff;
   font-size: 0.66rem;
 }
+
+.season-tag.spring {
+  border-color: rgba(255, 190, 215, 0.5);
+  color: #ffc6dc;
+}
