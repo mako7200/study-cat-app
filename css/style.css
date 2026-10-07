@@ -283,6 +283,32 @@ button {
   flex-shrink: 0;
 }
 
+.done-tag {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  margin: -6px 0 -10px -4px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  border-color: color-mix(in srgb, var(--tag) 70%, transparent);
+  background: var(--card);
+  background: color-mix(in srgb, var(--tag) 22%, transparent);
+  font-size: 0.85rem;
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+
+.done-tag .tag-dot {
+  background: var(--tag);
+}
+
+.done-sub[hidden] {
+  display: none;
+}
+
 .timer-display {
   border: none;
   background: none;

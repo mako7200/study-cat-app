@@ -157,6 +157,10 @@ function formatClock(ms) {
   return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+function formatRange(session) {
+  return `${formatClock(session.startAt ?? session.id - session.minutes * 60000)}〜${formatClock(session.id)}`;
+}
+
 function sessionTag(session) {
   const tag = findTag(session.tagId);
   return tag
@@ -467,9 +471,11 @@ function openDone(session, rewards = [], editing = false) {
   $('done-bonus').hidden = !session.morning;
   $('done-unlock').hidden = rewards.length === 0;
   $('done-unlock').textContent = rewards.map(item => `${item.name} を手に入れました`).join('\n');
-  $('done-sub').textContent = editing
-    ? `${formatDay(session.date)}　${sessionTag(session).name}`
-    : `${session.tagName}　お疲れさま`;
+  const tag = sessionTag(session);
+  $('done-tag').style.setProperty('--tag', tag.color);
+  $('done-tag-name').textContent = tag.name;
+  $('done-sub').hidden = !editing;
+  $('done-sub').textContent = editing ? `${formatDay(session.date)}　${formatRange(session)}` : '';
   $('done-skip').textContent = editing ? 'キャンセル' : 'スキップ';
   doneModal.classList.add('show');
 }
@@ -816,7 +822,7 @@ function renderDaySheet() {
     const open = dayOpenTags.has(t.key);
     const records = t.sessions.map(s => `
       <button type="button" class="day-record" data-id="${s.id}">
-        <span class="day-record-top"><span>${formatClock(s.startAt ?? s.id - s.minutes * 60000)}〜${formatClock(s.id)}</span><span>${s.minutes} min</span></span>
+        <span class="day-record-top"><span>${formatRange(s)}</span><span>${s.minutes} min</span></span>
         ${s.understanding ? `<span class="log-item-understanding">${UNDERSTANDING_LABEL[s.understanding]}</span>` : ''}
         ${s.memo ? `<span class="log-item-memo">${escapeHtml(s.memo)}</span>` : ''}
       </button>`).join('');
