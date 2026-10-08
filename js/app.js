@@ -798,7 +798,11 @@ document.addEventListener('contextmenu', event => {
 });
 
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState !== 'visible') return;
+  if (document.visibilityState !== 'visible') {
+    showEndNote();
+    return;
+  }
+  clearEndNote();
   renderBond();
   if (running) tick();
   else renderTimer();
@@ -1614,19 +1618,35 @@ async function schedulePush(endAt) {
     const cache = await caches.open(PUSH_INFO_CACHE);
     await cache.put('./push-info', new Response(JSON.stringify({ minutes: running.minutes, tagName: running.tagName })));
     await pushRequest('/schedule', { endAt, subscription: subscription.toJSON() });
-    await reg.showNotification(`【終了予定】${formatClock(endAt)}（${running.tagName}）`, { icon: './icons/icon-192.png', tag: 'timer-end', silent: true });
+    if (running) {
+      running.pushScheduled = true;
+      save(KEYS.running, running);
+    }
   } catch {
     showToast('通知を予約できませんでした');
   }
 }
 
-function cancelPush() {
-  if (!push.enabled) return;
-  pushRequest('/cancel', {}).catch(() => {});
+function showEndNote() {
+  if (!push.enabled || !running || !running.pushScheduled) return;
+  const title = `【終了予定】${formatClock(running.startAt + running.minutes * 60000)}（${running.tagName}）`;
+  navigator.serviceWorker.ready
+    .then(reg => reg.showNotification(title, { icon: './icons/icon-192.png', tag: 'timer-end', silent: true }))
+    .catch(() => {});
+}
+
+function clearEndNote() {
+  if (!pushSupported()) return;
   navigator.serviceWorker.ready
     .then(reg => reg.getNotifications({ tag: 'timer-end' }))
     .then(list => list.forEach(notification => notification.close()))
     .catch(() => {});
+}
+
+function cancelPush() {
+  if (!push.enabled) return;
+  pushRequest('/cancel', {}).catch(() => {});
+  clearEndNote();
 }
 
 let pushBusy = false;
