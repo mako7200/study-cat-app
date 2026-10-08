@@ -36,6 +36,7 @@ const NIGHT_END = 3;
 const TREAT_PRICE = 100;
 const STAMINA_MINUTES = 60;
 const PUSH_SERVER = 'https://study-cat-push.hiropi.workers.dev';
+const PUSH_INFO_CACHE = 'study-cat-push-info';
 const VAPID_PUBLIC_KEY = 'BA79WmAxYEqBIIH4smNqVbgvo4go5Yg9RwMsDLnieHIsLZv1zSXCcWGlbkjTIAD3uBabMT0Yhg0ISUsUb0amIYo';
 const HEART_PATH = 'M12 20.5s-7.5-4.6-7.5-10.2C4.5 7.4 6.6 5.5 9 5.5c1.4 0 2.4.7 3 1.6.6-.9 1.6-1.6 3-1.6 2.4 0 4.5 1.9 4.5 4.8 0 5.6-7.5 10.2-7.5 10.2z';
 
@@ -1610,6 +1611,8 @@ async function schedulePush(endAt) {
     const reg = await navigator.serviceWorker.ready;
     const subscription = await reg.pushManager.getSubscription();
     if (!subscription) throw new Error('no subscription');
+    const cache = await caches.open(PUSH_INFO_CACHE);
+    await cache.put('./push-info', new Response(JSON.stringify({ minutes: running.minutes, tagName: running.tagName })));
     await pushRequest('/schedule', { endAt, subscription: subscription.toJSON() });
   } catch {
     showToast('通知を予約できませんでした');

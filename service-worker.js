@@ -1,4 +1,5 @@
-const CACHE_NAME = 'study-cat-v29';
+const CACHE_NAME = 'study-cat-v30';
+const PUSH_INFO_CACHE = 'study-cat-push-info';
 const CACHE_FILES = [
   './',
   './index.html',
@@ -47,7 +48,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))
+      Promise.all(keys.filter(key => key !== CACHE_NAME && key !== PUSH_INFO_CACHE).map(key => caches.delete(key)))
     )
   );
 });
@@ -59,11 +60,16 @@ self.addEventListener('fetch', event => {
 });
 
 self.addEventListener('push', event => {
-  event.waitUntil(self.registration.showNotification('スタディにゃんこ', {
-    body: '設定した時間になりました。お疲れ様です。',
-    icon: './icons/icon-192.png',
-    tag: 'timer-done'
-  }));
+  event.waitUntil(
+    caches.open(PUSH_INFO_CACHE)
+      .then(cache => cache.match('./push-info'))
+      .then(res => res ? res.json() : null)
+      .catch(() => null)
+      .then(info => self.registration.showNotification(
+        info ? `【達成】${info.minutes}分（${info.tagName}）` : '【達成】設定した時間になりました',
+        { icon: './icons/icon-192.png', tag: 'timer-done' }
+      ))
+  );
 });
 
 self.addEventListener('notificationclick', event => {
