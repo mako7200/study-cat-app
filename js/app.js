@@ -6,7 +6,8 @@ const KEYS = {
   coins: 'studyCatCoins',
   shop: 'studyCatShop',
   admin: 'studyCatAdmin',
-  bond: 'studyCatBond'
+  bond: 'studyCatBond',
+  push: 'studyCatPush'
 };
 const TAG_COLORS = ['#E07A5F', '#E6B655', '#6FA88C', '#5BA8B5', '#7B93D6', '#B08BD0'];
 const UNDERSTANDING_LABEL = { '1': 'もう少し', '2': 'まあまあ', '3': 'バッチリ' };
@@ -34,6 +35,8 @@ const NIGHT_START = 18;
 const NIGHT_END = 3;
 const TREAT_PRICE = 100;
 const STAMINA_MINUTES = 60;
+const PUSH_SERVER = 'https://study-cat-push.hiropi.workers.dev';
+const VAPID_PUBLIC_KEY = 'BA79WmAxYEqBIIH4smNqVbgvo4go5Yg9RwMsDLnieHIsLZv1zSXCcWGlbkjTIAD3uBabMT0Yhg0ISUsUb0amIYo';
 const HEART_PATH = 'M12 20.5s-7.5-4.6-7.5-10.2C4.5 7.4 6.6 5.5 9 5.5c1.4 0 2.4.7 3 1.6.6-.9 1.6-1.6 3-1.6 2.4 0 4.5 1.9 4.5 4.8 0 5.6-7.5 10.2-7.5 10.2z';
 
 const SHOP = {
@@ -701,6 +704,7 @@ function start() {
   save(KEYS.running, running);
   renderTimer();
   startTick();
+  schedulePush(running.startAt + running.minutes * 60000);
 }
 
 function finish(minutes) {
@@ -774,7 +778,9 @@ startBtn.addEventListener('click', async () => {
     ? `ここまでの${minutes}分を記録しておわりますか？`
     : '1分未満のため記録されません。おわりますか？';
   const ok = await showConfirm(message, 'おわる');
-  if (ok && running) finish(minutes);
+  if (!ok || !running) return;
+  cancelPush();
+  finish(minutes);
 });
 
 let lastTouchEnd = 0;
@@ -1562,6 +1568,92 @@ document.querySelectorAll('.accordion-head').forEach(head => {
 });
 
 let toastTimer = null;
+
+let push = load(KEYS.push, { id: null, enabled: false });
+if (!push.id) {
+  push.id = crypto.randomUUID();
+  save(KEYS.push, push);
+}
+
+function pushSupported() {
+  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+}
+
+function base64UrlToBytes(str) {
+  const base64 = (str + '='.repeat((4 - str.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+  return Uint8Array.from(atob(base64), char => char.charCodeAt(0));
+}
+
+function renderPush() {
+  $('push-toggle').setAttribute('aria-checked', String(push.enabled));
+}
+
+function setPushEnabled(enabled) {
+  push.enabled = enabled;
+  save(KEYS.push, push);
+  renderPush();
+}
+
+function pushRequest(path, body) {
+  return fetch(PUSH_SERVER + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: push.id, ...body })
+  }).then(res => {
+    if (!res.ok) throw new Error(res.status);
+  });
+}
+
+async function schedulePush(endAt) {
+  if (!push.enabled) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const subscription = await reg.pushManager.getSubscription();
+    if (!subscription) throw new Error('no subscription');
+    await pushRequest('/schedule', { endAt, subscription: subscription.toJSON() });
+  } catch {
+    showToast('通知を予約できませんでした');
+  }
+}
+
+function cancelPush() {
+  if (push.enabled) pushRequest('/cancel', {}).catch(() => {});
+}
+
+let pushBusy = false;
+$('push-toggle').addEventListener('click', async () => {
+  if (pushBusy) return;
+  if (!pushSupported()) {
+    showToast('ホーム画面に追加したアプリで使えます');
+    return;
+  }
+  pushBusy = true;
+  try {
+    if (push.enabled) {
+      const reg = await navigator.serviceWorker.ready;
+      const subscription = await reg.pushManager.getSubscription();
+      if (subscription) await subscription.unsubscribe();
+      setPushEnabled(false);
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      showToast('通知が許可されていません\niPhoneの設定 → 通知 から許可してください');
+      return;
+    }
+    const reg = await navigator.serviceWorker.ready;
+    await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: base64UrlToBytes(VAPID_PUBLIC_KEY) });
+    setPushEnabled(true);
+    showToast('時間になったら通知します');
+  } catch {
+    showToast('通知の設定ができませんでした');
+  } finally {
+    pushBusy = false;
+  }
+});
+
+if (push.enabled && (!pushSupported() || Notification.permission !== 'granted')) setPushEnabled(false);
+renderPush();
 
 function showToast(message) {
   const toast = $('toast');

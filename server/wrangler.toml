@@ -1,0 +1,15 @@
+name = "study-cat-push"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+[vars]
+VAPID_PUBLIC_KEY = "BA79WmAxYEqBIIH4smNqVbgvo4go5Yg9RwMsDLnieHIsLZv1zSXCcWGlbkjTIAD3uBabMT0Yhg0ISUsUb0amIYo"
+VAPID_SUBJECT = "https://mako7200.github.io/study-cat-app/"
+
+[[durable_objects.bindings]]
+name = "REMINDER"
+class_name = "Reminder"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Reminder"]

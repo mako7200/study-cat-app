@@ -243,6 +243,19 @@
     <div class="page-body">
       <div class="accordion">
         <button type="button" class="accordion-head" aria-expanded="false">
+          <span>通知</span>
+          <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg>
+        </button>
+        <div class="accordion-body" hidden>
+          <div class="app-info-row">
+            <span class="setting-label">時間になったら通知する</span>
+            <button type="button" class="switch" id="push-toggle" role="switch" aria-checked="false" aria-label="時間になったら通知する"><span></span></button>
+          </div>
+          <div class="dev-note setting-note">画面を閉じていても、設定した時間になると通知が届きます。ホーム画面に追加したアプリで使えます。</div>
+        </div>
+      </div>
+      <div class="accordion">
+        <button type="button" class="accordion-head" aria-expanded="false">
           <span>開発者設定</span>
           <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg>
         </button>
@@ -283,7 +296,7 @@
         </button>
         <div class="accordion-body" hidden>
           <div class="app-info-row">
-            <span class="app-version">Version 0.17.0</span>
+            <span class="app-version">Version 0.18.0</span>
             <button type="button" class="btn-small" id="btn-fetch-latest">最新版を取得</button>
           </div>
         </div>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'study-cat-v28';
+const CACHE_NAME = 'study-cat-v29';
 const CACHE_FILES = [
   './',
   './index.html',
@@ -55,6 +55,24 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
+  );
+});
+
+self.addEventListener('push', event => {
+  event.waitUntil(self.registration.showNotification('スタディにゃんこ', {
+    body: '設定した時間になりました。お疲れ様です。',
+    icon: './icons/icon-192.png',
+    tag: 'timer-done'
+  }));
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+      if (clients.length) return clients[0].focus();
+      return self.clients.openWindow('./');
+    })
   );
 });
 
