@@ -1,4 +1,4 @@
-const CACHE_NAME = 'study-cat-v32';
+const CACHE_NAME = 'study-cat-v33';
 const PUSH_INFO_CACHE = 'study-cat-push-info';
 const CACHE_FILES = [
   './',
@@ -71,8 +71,8 @@ self.addEventListener('push', event => {
         return info;
       })
       .then(info => self.registration.showNotification(
-        info ? `【達成】${info.minutes}分（${info.tagName}）` : '【達成】設定した時間になりました',
-        { icon: './icons/icon-192.png', tag: 'timer-done' }
+        info ? `✅ ${info.minutes}分達成（${info.tagName}）` : '✅ 設定した時間になりました',
+        { body: info && info.catName ? `${info.catName}「おつかれさま！」` : '', icon: './icons/icon-192.png', tag: 'timer-done' }
       ))
   );
 });

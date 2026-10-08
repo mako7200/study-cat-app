@@ -1616,7 +1616,7 @@ async function schedulePush(endAt) {
     const subscription = await reg.pushManager.getSubscription();
     if (!subscription) throw new Error('no subscription');
     const cache = await caches.open(PUSH_INFO_CACHE);
-    await cache.put('./push-info', new Response(JSON.stringify({ minutes: running.minutes, tagName: running.tagName })));
+    await cache.put('./push-info', new Response(JSON.stringify({ minutes: running.minutes, tagName: running.tagName, catName: equippedItem('cat').name })));
     await pushRequest('/schedule', { endAt, subscription: subscription.toJSON() });
     if (running) {
       running.pushScheduled = true;
