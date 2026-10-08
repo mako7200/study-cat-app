@@ -1,4 +1,4 @@
-const CACHE_NAME = 'study-cat-v30';
+const CACHE_NAME = 'study-cat-v31';
 const PUSH_INFO_CACHE = 'study-cat-push-info';
 const CACHE_FILES = [
   './',
@@ -65,6 +65,11 @@ self.addEventListener('push', event => {
       .then(cache => cache.match('./push-info'))
       .then(res => res ? res.json() : null)
       .catch(() => null)
+      .then(async info => {
+        const ending = await self.registration.getNotifications({ tag: 'timer-end' });
+        ending.forEach(notification => notification.close());
+        return info;
+      })
       .then(info => self.registration.showNotification(
         info ? `【達成】${info.minutes}分（${info.tagName}）` : '【達成】設定した時間になりました',
         { icon: './icons/icon-192.png', tag: 'timer-done' }

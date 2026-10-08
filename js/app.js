@@ -1614,13 +1614,19 @@ async function schedulePush(endAt) {
     const cache = await caches.open(PUSH_INFO_CACHE);
     await cache.put('./push-info', new Response(JSON.stringify({ minutes: running.minutes, tagName: running.tagName })));
     await pushRequest('/schedule', { endAt, subscription: subscription.toJSON() });
+    await reg.showNotification(`【終了予定】${formatClock(endAt)}（${running.tagName}）`, { icon: './icons/icon-192.png', tag: 'timer-end', silent: true });
   } catch {
     showToast('通知を予約できませんでした');
   }
 }
 
 function cancelPush() {
-  if (push.enabled) pushRequest('/cancel', {}).catch(() => {});
+  if (!push.enabled) return;
+  pushRequest('/cancel', {}).catch(() => {});
+  navigator.serviceWorker.ready
+    .then(reg => reg.getNotifications({ tag: 'timer-end' }))
+    .then(list => list.forEach(notification => notification.close()))
+    .catch(() => {});
 }
 
 let pushBusy = false;
