@@ -228,6 +228,40 @@ button {
   display: none;
 }
 
+.timer-view.is-overtime .ring-progress {
+  stroke: var(--gold) !important;
+}
+
+.timer-view.is-overtime .ring-bar {
+  filter: url(#glow-filter);
+}
+
+.timer-view.is-overtime .ring-core {
+  display: none;
+}
+
+.timer-view.is-overtime .ring:not(.paw) .ring-knob {
+  display: inline;
+  fill: var(--gold);
+}
+
+.timer-view.is-overtime .tag-chip {
+  border-color: rgba(230, 182, 85, 0.55);
+  color: var(--gold);
+}
+
+.timer-view.is-overtime .timer-display {
+  color: var(--gold);
+}
+
+.timer-display .plus {
+  font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
+  font-weight: bold;
+  font-size: 0.62em;
+  vertical-align: 0.18em;
+  margin-right: 0.06em;
+}
+
 .ring-paw {
   display: none;
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'study-cat-v33';
+const CACHE_NAME = 'study-cat-v34';
 const PUSH_INFO_CACHE = 'study-cat-push-info';
 const CACHE_FILES = [
   './',

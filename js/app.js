@@ -15,6 +15,7 @@ const RING_RADIUS = 54;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 const MIN_MINUTES = 10;
 const MAX_MINUTES = 120;
+const OVERTIME_MINUTES = 60;
 const DEV_CODE = 'matatabi';
 const UPDATED_FLAG = 'studyCatJustUpdated';
 const MORNING_START = 4;
@@ -602,14 +603,17 @@ function renderTimer() {
   const tag = running
     ? (findTag(running.tagId) || { name: running.tagName, color: 'var(--text-sub)' })
     : currentTag();
+  const over = running ? Math.floor((Date.now() - running.startAt) / 1000) - running.minutes * 60 : -1;
   tagDot.style.background = tag.color;
-  tagNameEl.textContent = tag.name;
+  tagNameEl.textContent = over >= 0 ? `${tag.name}・延長中` : tag.name;
+  timerView.classList.toggle('is-overtime', over >= 0);
 
-  if (running) {
-    const elapsed = Math.floor((Date.now() - running.startAt) / 1000);
-    const remain = Math.max(running.minutes * 60 - elapsed, 0);
-    timerDisplay.textContent = formatTime(remain);
-    setGauge(remain / (MAX_MINUTES * 60), true);
+  if (over >= 0) {
+    timerDisplay.innerHTML = `<span class="plus">+</span>${formatTime(over)}`;
+    setGauge(over / (OVERTIME_MINUTES * 60));
+  } else if (running) {
+    timerDisplay.textContent = formatTime(-over);
+    setGauge(-over / (MAX_MINUTES * 60), true);
   } else {
     timerDisplay.textContent = formatTime(prefs.minutes * 60);
     setGauge(prefs.minutes / MAX_MINUTES);
@@ -666,8 +670,8 @@ catRing.addEventListener('pointercancel', endDrag);
 
 function tick() {
   if (!running) return;
-  if (Date.now() >= running.startAt + running.minutes * 60000) {
-    finish(running.minutes);
+  if (Date.now() >= running.startAt + (running.minutes + OVERTIME_MINUTES) * 60000) {
+    finish(running.minutes + OVERTIME_MINUTES);
     return;
   }
   renderTimer();
@@ -756,6 +760,7 @@ function finish(minutes) {
   coins += session.coins;
   save(KEYS.coins, coins);
   const notes = grantRewards().map(item => item.images ? `${item.name}がやってきました` : `${item.name} を手に入れました`);
+  if (minutes > record.minutes) notes.unshift(`延長 +${minutes - record.minutes}分`);
   if (isAdmin) bond.devLastStudy = null;
   updateLastStudyDate();
   if (fixed) notes.push(fixedNote(fixed, cat.name));
@@ -774,7 +779,7 @@ startBtn.addEventListener('click', async () => {
     start();
     return;
   }
-  const minutes = Math.floor((Date.now() - running.startAt) / 60000);
+  const minutes = Math.min(Math.floor((Date.now() - running.startAt) / 60000), running.minutes + OVERTIME_MINUTES);
   const message = minutes >= 1
     ? `ここまでの${minutes}分を記録しておわりますか？`
     : '1分未満のため記録されません。おわりますか？';
@@ -1629,6 +1634,7 @@ async function schedulePush(endAt) {
 
 function showEndNote() {
   if (!push.enabled || !running || !running.pushScheduled) return;
+  if (Date.now() >= running.startAt + running.minutes * 60000) return;
   const title = `【終了予定】${formatClock(running.startAt + running.minutes * 60000)}（${running.tagName}）`;
   navigator.serviceWorker.ready
     .then(reg => reg.showNotification(title, { icon: './icons/icon-192.png', tag: 'timer-end', silent: true }))
