@@ -1,4 +1,4 @@
-const CACHE_NAME = 'study-cat-v34';
+const CACHE_NAME = 'study-cat-v35';
 const PUSH_INFO_CACHE = 'study-cat-push-info';
 const CACHE_FILES = [
   './',
@@ -41,7 +41,12 @@ const CACHE_FILES = [
 
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(CACHE_FILES.map(url => new Request(url, { cache: 'reload' }))))
+    caches.open(CACHE_NAME).then(cache => Promise.all(CACHE_FILES.map(url =>
+      fetch(`${url}?v=${CACHE_NAME}`, { cache: 'reload' }).then(res => {
+        if (!res.ok) throw new Error(url);
+        return cache.put(url, res);
+      })
+    )))
   );
 });
 

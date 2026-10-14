@@ -1722,7 +1722,7 @@ function waitForInstalled(reg) {
   return new Promise(resolve => {
     worker.addEventListener('statechange', () => {
       if (worker.state === 'installed') resolve(worker);
-      if (worker.state === 'redundant') resolve(null);
+      if (worker.state === 'redundant') resolve(false);
     });
   });
 }
@@ -1771,6 +1771,8 @@ $('btn-fetch-latest').addEventListener('click', () => {
       if (worker && navigator.serviceWorker.controller) {
         showToast('最新版を取得しています...');
         applyUpdate(worker);
+      } else if (worker === false) {
+        showToast('更新に失敗しました\n少し時間をおいてもう一度お試しください');
       } else {
         showToast('最新バージョンです');
       }
